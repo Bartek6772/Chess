@@ -1,0 +1,82 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Assets\b_bishop_png_shadow_128px.png" />
+    <None Remove="Assets\b_king_png_shadow_128px.png" />
+    <None Remove="Assets\b_knight_png_shadow_128px.png" />
+    <None Remove="Assets\b_pawn_png_shadow_128px.png" />
+    <None Remove="Assets\b_queen_png_shadow_128px.png" />
+    <None Remove="Assets\b_rook_png_shadow_128px.png" />
+    <None Remove="Assets\no_shadow\b_bishop_png_128px.png" />
+    <None Remove="Assets\no_shadow\b_king_png_128px.png" />
+    <None Remove="Assets\no_shadow\b_knight_png_128px.png" />
+    <None Remove="Assets\no_shadow\b_pawn_png_128px.png" />
+    <None Remove="Assets\no_shadow\b_queen_png_128px.png" />
+    <None Remove="Assets\no_shadow\b_rook_png_128px.png" />
+    <None Remove="Assets\no_shadow\w_bishop_png_128px.png" />
+    <None Remove="Assets\no_shadow\w_king_png_128px.png" />
+    <None Remove="Assets\no_shadow\w_knight_png_128px.png" />
+    <None Remove="Assets\no_shadow\w_pawn_png_128px.png" />
+    <None Remove="Assets\no_shadow\w_queen_png_128px.png" />
+    <None Remove="Assets\no_shadow\w_rook_png_128px.png" />
+    <None Remove="Assets\shadow\b_bishop_png_128px.png" />
+    <None Remove="Assets\shadow\b_king_png_128px.png" />
+    <None Remove="Assets\shadow\b_knight_png_128px.png" />
+    <None Remove="Assets\shadow\b_pawn_png_128px.png" />
+    <None Remove="Assets\shadow\b_queen_png_128px.png" />
+    <None Remove="Assets\shadow\b_rook_png_128px.png" />
+    <None Remove="Assets\shadow\main.py" />
+    <None Remove="Assets\shadow\w_bishop_png_128px.png" />
+    <None Remove="Assets\shadow\w_king_png_128px.png" />
+    <None Remove="Assets\shadow\w_knight_png_128px.png" />
+    <None Remove="Assets\shadow\w_pawn_png_128px.png" />
+    <None Remove="Assets\shadow\w_queen_png_128px.png" />
+    <None Remove="Assets\shadow\w_rook_png_128px.png" />
+    <None Remove="Assets\w_bishop_png_shadow_128px.png" />
+    <None Remove="Assets\w_king_png_shadow_128px.png" />
+    <None Remove="Assets\w_knight_png_shadow_128px.png" />
+    <None Remove="Assets\w_pawn_png_shadow_128px.png" />
+    <None Remove="Assets\w_queen_png_shadow_128px.png" />
+    <None Remove="Assets\w_rook_png_shadow_128px.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ChessEngine\ChessEngine.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\no_shadow\b_bishop_png_128px.png" />
+    <Resource Include="Assets\no_shadow\b_king_png_128px.png" />
+    <Resource Include="Assets\no_shadow\b_knight_png_128px.png" />
+    <Resource Include="Assets\no_shadow\b_pawn_png_128px.png" />
+    <Resource Include="Assets\no_shadow\b_queen_png_128px.png" />
+    <Resource Include="Assets\no_shadow\b_rook_png_128px.png" />
+    <Resource Include="Assets\no_shadow\w_bishop_png_128px.png" />
+    <Resource Include="Assets\no_shadow\w_king_png_128px.png" />
+    <Resource Include="Assets\no_shadow\w_knight_png_128px.png" />
+    <Resource Include="Assets\no_shadow\w_pawn_png_128px.png" />
+    <Resource Include="Assets\no_shadow\w_queen_png_128px.png" />
+    <Resource Include="Assets\no_shadow\w_rook_png_128px.png" />
+    <Resource Include="Assets\shadow\b_bishop_png_128px.png" />
+    <Resource Include="Assets\shadow\b_king_png_128px.png" />
+    <Resource Include="Assets\shadow\b_knight_png_128px.png" />
+    <Resource Include="Assets\shadow\b_pawn_png_128px.png" />
+    <Resource Include="Assets\shadow\b_queen_png_128px.png" />
+    <Resource Include="Assets\shadow\b_rook_png_128px.png" />
+    <Resource Include="Assets\shadow\w_bishop_png_128px.png" />
+    <Resource Include="Assets\shadow\w_king_png_128px.png" />
+    <Resource Include="Assets\shadow\w_knight_png_128px.png" />
+    <Resource Include="Assets\shadow\w_pawn_png_128px.png" />
+    <Resource Include="Assets\shadow\w_queen_png_128px.png" />
+    <Resource Include="Assets\shadow\w_rook_png_128px.png" />
+  </ItemGroup>
+
+</Project>
