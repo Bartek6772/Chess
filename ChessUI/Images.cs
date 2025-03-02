@@ -21,6 +21,13 @@ namespace ChessUI
             { Piece.WhiteBishop, LoadImage("w_bishop_png_128px") },
             { Piece.WhiteQueen, LoadImage("w_queen_png_128px") },
             { Piece.WhiteKing, LoadImage("w_king_png_128px") },
+
+            { Piece.BlackPawn, LoadImage("b_pawn_png_128px") },
+            { Piece.BlackRook, LoadImage("b_rook_png_128px") },
+            { Piece.BlackKnight, LoadImage("b_knight_png_128px") },
+            { Piece.BlackBishop, LoadImage("b_bishop_png_128px") },
+            { Piece.BlackQueen, LoadImage("b_queen_png_128px") },
+            { Piece.BlackKing, LoadImage("b_king_png_128px") },
         };
 
 
