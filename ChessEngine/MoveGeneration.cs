@@ -23,21 +23,43 @@ namespace ChessEngine
             moves = new List<Move>();
             int colorToMove = board.colorToMove == Board.WhiteIndex ? Piece.White : Piece.Black;
 
-            for (int square = 0; square < 64; square++) {
-
-                if (Piece.PieceColor(board[square]) == colorToMove) {
-
-                    int piece = Piece.PieceType(board[square]);
-
-                    if (piece == Piece.Queen) GenerateSlidingMoves(square, colorToMove, 0, 8);
-                    else if (piece == Piece.Rook) GenerateSlidingMoves(square, colorToMove, 0, 4);
-                    else if (piece == Piece.Bishop) GenerateSlidingMoves(square, colorToMove, 4, 8);
-                    else if (piece == Piece.Knight) GenerateKnightMoves(square, colorToMove);
-                    else if (piece == Piece.King) GenerateKingMoves(square, colorToMove);
-                    else if (piece == Piece.Pawn) GeneratePawnMoves(square, colorToMove);
-                }
-
+            foreach (int square in board.pieceList[Piece.Queen | colorToMove]) {
+                GenerateSlidingMoves(square, colorToMove, 0, 8);
             }
+
+            foreach (int square in board.pieceList[Piece.Rook | colorToMove]) {
+                GenerateSlidingMoves(square, colorToMove, 0, 4);
+            }
+
+            foreach (int square in board.pieceList[Piece.Bishop | colorToMove]) {
+                GenerateSlidingMoves(square, colorToMove, 4, 8);
+            }
+
+            foreach (int square in board.pieceList[Piece.Knight | colorToMove]) {
+                GenerateKnightMoves(square, colorToMove);
+            }
+
+            foreach (int square in board.pieceList[Piece.Pawn | colorToMove]) {
+                GeneratePawnMoves(square, colorToMove);
+            }
+
+            GenerateKingMoves(board.pieceList[Piece.King | colorToMove][0], colorToMove);
+
+            //for (int square = 0; square < 64; square++) {
+
+            //    if (Piece.PieceColor(board[square]) == colorToMove) {
+
+            //        int piece = Piece.PieceType(board[square]);
+
+            //        if (piece == Piece.Queen) GenerateSlidingMoves(square, colorToMove, 0, 8);
+            //        else if (piece == Piece.Rook) GenerateSlidingMoves(square, colorToMove, 0, 4);
+            //        else if (piece == Piece.Bishop) GenerateSlidingMoves(square, colorToMove, 4, 8);
+            //        else if (piece == Piece.Knight) GenerateKnightMoves(square, colorToMove);
+            //        else if (piece == Piece.King) GenerateKingMoves(square, colorToMove);
+            //        else if (piece == Piece.Pawn) GeneratePawnMoves(square, colorToMove);
+            //    }
+
+            //}
 
             return moves;
         }

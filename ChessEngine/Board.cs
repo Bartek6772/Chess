@@ -19,8 +19,9 @@
 
         public const int WhiteIndex = 0;
         public const int BlackIndex = 1;
-
         public int colorToMove = WhiteIndex;
+
+        public PieceList[] pieceList;
 
         public Board()
         {
@@ -59,16 +60,45 @@
                 }
             }
 
-            //InitializePieceList();
+            InitializePieceList();
         }
 
         public void MakeMove(Move move)
         {
+            int capturedPiece = this[move.TargetSquare];
             int piece = this[move.StartSquare];
+
+            pieceList[piece].MovePiece(move.StartSquare, move.TargetSquare);
+            if (capturedPiece != Piece.None) pieceList[capturedPiece].RemovePiece(move.TargetSquare);
+
             this[move.TargetSquare] = piece;
             this[move.StartSquare] = Piece.None;
 
             colorToMove = 1 - colorToMove;
+        }
+
+        private void InitializePieceList()
+        {
+            // TODO: Handle situation when user load position with more than max amount of pieces
+            pieceList = new PieceList[Piece.MaxPieceIndex + 1];
+            pieceList[Piece.WhitePawn] = new PieceList(8);
+            pieceList[Piece.WhiteKnight] = new PieceList(10);
+            pieceList[Piece.WhiteBishop] = new PieceList(10);
+            pieceList[Piece.WhiteRook] = new PieceList(10);
+            pieceList[Piece.WhiteQueen] = new PieceList(9);
+            pieceList[Piece.WhiteKing] = new PieceList(1);
+
+            pieceList[Piece.BlackPawn] = new PieceList(8);
+            pieceList[Piece.BlackKnight] = new PieceList(10);
+            pieceList[Piece.BlackBishop] = new PieceList(10);
+            pieceList[Piece.BlackRook] = new PieceList(10);
+            pieceList[Piece.BlackQueen] = new PieceList(9);
+            pieceList[Piece.BlackKing] = new PieceList(1);
+
+            for (int i = 0; i < 64; i++) {
+                if (this[i] == Piece.None) continue;
+                pieceList[this[i]].AddPiece(i);
+            }
         }
     }
 }

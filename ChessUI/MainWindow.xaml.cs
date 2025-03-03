@@ -98,7 +98,7 @@ public partial class MainWindow : Window
                 int x = moves[i].TargetSquare % 8;
                 int y = moves[i].TargetSquare / 8;
 
-                highlights[x, 7 - y].Fill = new SolidColorBrush(Color.FromRgb(252, 186, 3));
+                highlights[x, 7 - y].Fill = new SolidColorBrush(Color.FromArgb(100, 252, 186, 3));
             }
         }
     }
