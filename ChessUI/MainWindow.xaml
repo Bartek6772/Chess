@@ -71,8 +71,9 @@
         </Border>
 
         <Viewbox Grid.Row="1">
-            <Grid Width="512" Height="512">
-                <UniformGrid Name="Chessboard" Rows="8" Columns="8"/>
+            <Grid Width="512" Height="512" Name="Chessboard">
+                <UniformGrid Name="Background" Rows="8" Columns="8"/>
+                <UniformGrid Name="HighlightGrid" Rows="8" Columns="8"/>
                 <UniformGrid Name="ChessPieces" Rows="8" Columns="8" RenderOptions.BitmapScalingMode="HighQuality"/>
                 <Canvas Name="DragLayer" IsHitTestVisible="False"/>
             </Grid>

@@ -40,5 +40,8 @@ namespace ChessEngine
 
         public static int PieceColor(int piece) => piece & colorMask;
         public static int PieceType(int piece) => piece & typeMask;
+        public static int OppositeColor(int color) => color == White ? Black : White;
+
+        public static bool IsColor(int piece, int color) => piece != None && (piece & colorMask) == color;
     }
 }

@@ -15,6 +15,12 @@
         }
 
         public const string startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+        public const string testFEN = "b3R3/8/8/2n5/8/6r1/4N3/8";
+
+        public const int WhiteIndex = 0;
+        public const int BlackIndex = 1;
+
+        public int colorToMove = WhiteIndex;
 
         public Board()
         {
@@ -54,6 +60,15 @@
             }
 
             //InitializePieceList();
+        }
+
+        public void MakeMove(Move move)
+        {
+            int piece = this[move.StartSquare];
+            this[move.TargetSquare] = piece;
+            this[move.StartSquare] = Piece.None;
+
+            colorToMove = 1 - colorToMove;
         }
     }
 }
