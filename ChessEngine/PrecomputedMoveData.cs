@@ -16,6 +16,26 @@ namespace ChessEngine
         public readonly static PawnData WhitePawnData = new() { direction = 0, doublePushLine = 1 };
         public readonly static PawnData BlackPawnData = new() { direction = 1, doublePushLine = 6 };
 
+        // white short-long ...
+        public readonly static int[][] CastlingSquares = {
+            [5, 6],
+            [1, 2, 3],
+            [61, 62],
+            [59, 58, 57]
+        };
+
+        public readonly static int[][] RooksCastlingPositions = {
+            [7, 5],
+            [0, 3],
+            [63, 61],
+            [56, 59]
+        };
+
+        public readonly static int[][] PawnAttackDirections = {
+            [4, 6],
+            [5, 7],
+        };
+
         public struct PawnData
         {
             public int direction;
@@ -31,11 +51,11 @@ namespace ChessEngine
             KnightJumps = new int[64][];
             PrecomputeKnightJumps();
 
-            WhitePawnData.attacks = new int[64][];
-            PrecomputePawnAttacks(ref WhitePawnData, [1, -1], [1, 1]);
+            //WhitePawnData.attacks = new int[64][];
+            //PrecomputePawnAttacks(ref WhitePawnData, [1, -1], [1, 1]);
 
-            BlackPawnData.attacks = new int[64][];
-            PrecomputePawnAttacks(ref BlackPawnData, [1, -1], [-1, -1]);
+            //BlackPawnData.attacks = new int[64][];
+            //PrecomputePawnAttacks(ref BlackPawnData, [1, -1], [-1, -1]);
         }
 
         private static void PrecomputeSlidingMoves()
@@ -85,25 +105,25 @@ namespace ChessEngine
             }
         }
 
-        private static void PrecomputePawnAttacks(ref PawnData data, int[] jumpX, int [] jumpY)
-        {
-            for (int row = 0; row < 8; row++) {
-                for (int col = 0; col < 8; col++) {
+        //private static void PrecomputePawnAttacks(ref PawnData data, int[] jumpX, int [] jumpY)
+        //{
+        //    for (int row = 0; row < 8; row++) {
+        //        for (int col = 0; col < 8; col++) {
 
-                    List<int> moves = new List<int>(8);
+        //            List<int> moves = new List<int>(8);
 
-                    for (int i = 0; i < 2; i++) {
-                        int targetX = col + jumpX[i];
-                        int targetY = row + jumpY[i];
+        //            for (int i = 0; i < 2; i++) {
+        //                int targetX = col + jumpX[i];
+        //                int targetY = row + jumpY[i];
 
-                        if (targetX >= 0 && targetX < 8 && targetY >= 0 && targetY < 8) {
-                            moves.Add(targetX + targetY * 8);
-                        }
-                    }
+        //                if (targetX >= 0 && targetX < 8 && targetY >= 0 && targetY < 8) {
+        //                    moves.Add(targetX + targetY * 8);
+        //                }
+        //            }
 
-                    data.attacks[col + row * 8] = moves.ToArray();
-                }
-            }
-        }
+        //            data.attacks[col + row * 8] = moves.ToArray();
+        //        }
+        //    }
+        //}
     }
 }

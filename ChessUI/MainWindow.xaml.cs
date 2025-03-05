@@ -65,6 +65,14 @@ public partial class MainWindow : Window
         Chessboard.MouseLeftButtonUp += Chessboard_MouseLeftButtonUp;
     }
 
+    private void RefreshBoard()
+    {
+        DrawBoard();
+        ClearHighlights();
+
+        moves = moveGen.GenerateMoves();
+    }
+
     private void DrawBoard()
     {
         for (int row = 0; row < 8; row++) {
@@ -90,8 +98,6 @@ public partial class MainWindow : Window
 
     private void DrawHighlights()
     {
-        ClearHighlights();
-
         for (int i = 0; i < moves.Count; i++) {
             if (moves[i].StartSquare == selectedSquare) {
 
@@ -113,16 +119,15 @@ public partial class MainWindow : Window
                 if (moves[i].StartSquare == selectedSquare && moves[i].TargetSquare == target) {
 
                     board.MakeMove(moves[i]);
-                    moves = moveGen.GenerateMoves();
-                    ClearHighlights();
-                    DrawBoard();
                     selectedSquare = -1;
+                    RefreshBoard();
                     return;
                 }
             }
         }
 
         selectedSquare = GridToBoard(row, col);
+        ClearHighlights();
         DrawHighlights();
     }
 
@@ -299,7 +304,12 @@ public partial class MainWindow : Window
     {
         Application.Current.MainWindow.WindowState = WindowState.Minimized;
     }
+
     #endregion
 
-
+    private void UndoButton_Click(object sender, RoutedEventArgs e)
+    {
+        board.UnmakeMove();
+        RefreshBoard();
+    }
 }

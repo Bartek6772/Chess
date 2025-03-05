@@ -46,6 +46,7 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
+        <!-- WINDOW BUTTONS-->
         <Border Background="#0f1114" MouseDown="Border_MouseDown">
             <Grid HorizontalAlignment="Stretch">
                 <Label Foreground="Gray">Chess</Label>
@@ -70,14 +71,27 @@
             </Grid>
         </Border>
 
-        <Viewbox Grid.Row="1">
-            <Grid Width="512" Height="512" Name="Chessboard">
-                <UniformGrid Name="Background" Rows="8" Columns="8"/>
-                <UniformGrid Name="HighlightGrid" Rows="8" Columns="8"/>
-                <UniformGrid Name="ChessPieces" Rows="8" Columns="8" RenderOptions.BitmapScalingMode="HighQuality"/>
-                <Canvas Name="DragLayer" IsHitTestVisible="False"/>
-            </Grid>
-        </Viewbox>
+        <!-- CONTENT-->
+
+        <Grid Grid.Row="1">
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="512"/>
+                <RowDefinition Height="100"/>
+            </Grid.RowDefinitions>
+            
+            <Viewbox Grid.Row="0">
+                <Grid Width="512" Height="512" Name="Chessboard">
+                    <UniformGrid Name="Background" Rows="8" Columns="8"/>
+                    <UniformGrid Name="HighlightGrid" Rows="8" Columns="8"/>
+                    <UniformGrid Name="ChessPieces" Rows="8" Columns="8" RenderOptions.BitmapScalingMode="HighQuality"/>
+                    <Canvas Name="DragLayer" IsHitTestVisible="False"/>
+                </Grid>
+            </Viewbox>
+
+            <Button Content="Undo" Grid.Row="1" Width="200" Height="50" Click="UndoButton_Click"/>
+        </Grid>
+        
         
 
     </Grid>

@@ -1,4 +1,6 @@
-﻿namespace ChessEngine
+﻿using System.Diagnostics;
+
+namespace ChessEngine
 {
     public class Board
     {
@@ -22,10 +24,42 @@
         public int colorToMove = WhiteIndex;
 
         public PieceList[] pieceList;
+        public Stack<GameState> history;
+
+        public const int WK = 1; // 0001 (K)
+        public const int WQ = 2; // 0010 (Q)
+        public const int BK = 4; // 0100 (k)
+        public const int BQ = 8; // 1000 (q)
+
+        public int castlingRights = 0b1111;
+
+        public void RemoveCastling(int rights)
+        {
+            castlingRights &= ~rights;
+        }
+
+        public void AddCastling(int rights)
+        {
+            castlingRights |= rights;
+        }
+
+        public bool HasCastlingRight(int rights)
+        {
+            return (castlingRights & rights) != 0;
+        }
 
         public Board()
         {
+            // idea: add initial gameState for implementaion
+            history = new Stack<GameState>();
             LoadPositionFromFEN(startFEN);
+        }
+
+        public struct GameState
+        {
+            public Move move;
+            public int capturedPiece;
+            public int castlingRights;
         }
 
         public void LoadPositionFromFEN(string fen)
@@ -65,16 +99,96 @@
 
         public void MakeMove(Move move)
         {
-            int capturedPiece = this[move.TargetSquare];
+            GameState newGS = new() { move = move };
+            newGS.capturedPiece = this[move.TargetSquare];
+            newGS.castlingRights = castlingRights;
+
             int piece = this[move.StartSquare];
 
             pieceList[piece].MovePiece(move.StartSquare, move.TargetSquare);
-            if (capturedPiece != Piece.None) pieceList[capturedPiece].RemovePiece(move.TargetSquare);
+            if (newGS.capturedPiece != Piece.None) {
+                pieceList[newGS.capturedPiece].RemovePiece(move.TargetSquare);
+            }
 
             this[move.TargetSquare] = piece;
             this[move.StartSquare] = Piece.None;
 
+            if (move.MoveFlag == Move.Flags.CastlingKingSide) {
+                Castle(colorToMove * 2, 0);
+            }
+            else if (move.MoveFlag == Move.Flags.CastlingQueenSide) {
+                Castle(colorToMove * 2 + 1, 0);
+            }
+
+            if(piece == Piece.WhiteKing) {
+                RemoveCastling(WK);
+                RemoveCastling(WQ);
+            }
+            else if (piece == Piece.BlackKing) {
+                RemoveCastling(BK);
+                RemoveCastling(BQ);
+            }
+            else if(Piece.PieceType(piece) == Piece.Rook) {
+                if(move.StartSquare == 0) {
+                    RemoveCastling(WQ);
+                }
+                else if (move.StartSquare == 7) {
+                    RemoveCastling(WK);
+                }
+                else if (move.StartSquare == 63) {
+                    RemoveCastling(BK);
+                }
+                else if (move.StartSquare == 56) {
+                    RemoveCastling(BQ);
+                }
+            }
+
             colorToMove = 1 - colorToMove;
+            history.Push(newGS);
+        }
+
+        public void UnmakeMove()
+        {
+            if(history.Count == 0) {
+                Debug.WriteLine("Trying to unmake move error");
+                return;
+            }
+
+            GameState oldGS = history.Peek();
+            history.Pop();
+
+            int piece = this[oldGS.move.TargetSquare];
+
+            pieceList[piece].MovePiece(oldGS.move.TargetSquare, oldGS.move.StartSquare);
+            if (oldGS.capturedPiece != Piece.None) {
+                pieceList[oldGS.capturedPiece].AddPiece(oldGS.move.TargetSquare);
+            }
+
+            this[oldGS.move.TargetSquare] = oldGS.capturedPiece;
+            this[oldGS.move.StartSquare] = piece;
+
+            colorToMove = 1 - colorToMove;
+
+            if (oldGS.move.MoveFlag == Move.Flags.CastlingKingSide) {
+                Castle(colorToMove * 2, 1);
+            }
+            else if (oldGS.move.MoveFlag == Move.Flags.CastlingQueenSide) {
+                Castle(colorToMove * 2 + 1, 1);
+            }
+
+            castlingRights = oldGS.castlingRights;
+        }
+
+        private void Castle(int idx, int b)
+        {
+            int rook = this[PrecomputedMoveData.RooksCastlingPositions[idx][b]];
+            int start = PrecomputedMoveData.RooksCastlingPositions[idx][b];
+            int end = PrecomputedMoveData.RooksCastlingPositions[idx][1 - b];
+
+            this[end] = rook;
+            this[start] = Piece.None;
+
+            pieceList[rook].MovePiece(start, end);
         }
 
         private void InitializePieceList()

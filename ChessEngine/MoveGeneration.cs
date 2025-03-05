@@ -21,6 +21,7 @@ namespace ChessEngine
         public List<Move> GenerateMoves()
         {
             moves = new List<Move>();
+            List<Move> legalMoves = new List<Move>();
             int colorToMove = board.colorToMove == Board.WhiteIndex ? Piece.White : Piece.Black;
 
             foreach (int square in board.pieceList[Piece.Queen | colorToMove]) {
@@ -45,23 +46,97 @@ namespace ChessEngine
 
             GenerateKingMoves(board.pieceList[Piece.King | colorToMove][0], colorToMove);
 
-            //for (int square = 0; square < 64; square++) {
+            foreach (Move move in moves) {
+                board.MakeMove(move);
 
-            //    if (Piece.PieceColor(board[square]) == colorToMove) {
+                int frienldyKingSquare = board.pieceList[Piece.King | colorToMove][0];
+                if (!IsSquareAttacked(frienldyKingSquare, Piece.OppositeColor(colorToMove))) {
+                    legalMoves.Add(move);
+                }
+                board.UnmakeMove();
+            }
 
-            //        int piece = Piece.PieceType(board[square]);
+            return legalMoves;
+        }
 
-            //        if (piece == Piece.Queen) GenerateSlidingMoves(square, colorToMove, 0, 8);
-            //        else if (piece == Piece.Rook) GenerateSlidingMoves(square, colorToMove, 0, 4);
-            //        else if (piece == Piece.Bishop) GenerateSlidingMoves(square, colorToMove, 4, 8);
-            //        else if (piece == Piece.Knight) GenerateKnightMoves(square, colorToMove);
-            //        else if (piece == Piece.King) GenerateKingMoves(square, colorToMove);
-            //        else if (piece == Piece.Pawn) GeneratePawnMoves(square, colorToMove);
-            //    }
+        // try passing freindly color instead
+        public bool IsSquareAttacked(int attackSquare, int attackerColour)
+        {
+            int attackerColourIndex = attackerColour / Piece.Black;
+            int friendlyColourIndex = 1 - attackerColourIndex;
+            int friendlyColour = friendlyColourIndex * Piece.Black;
 
-            //}
+            int startDirIndex = 0;
+            int endDirIndex = 8;
 
-            return moves;
+            int opponentKingSquare = board.pieceList[Piece.King | attackerColour][0];
+            for (int i = 0; i < 8; i++) {
+                if (NumSquaresToEdge[opponentKingSquare][i] > 0 && opponentKingSquare + DirectionOffsets[i] == attackSquare) {
+                    return true;
+                }
+            }
+
+            if (board.pieceList[Piece.Queen | attackerColour].Count == 0) {
+                startDirIndex = (board.pieceList[Piece.Rook | attackerColour].Count > 0) ? 0 : 4;
+                endDirIndex = (board.pieceList[Piece.Bishop | attackerColour].Count > 0) ? 8 : 4;
+            }
+
+            for (int dir = startDirIndex; dir < endDirIndex; dir++) {
+                bool isDiagonal = dir > 3;
+
+                int n = NumSquaresToEdge[attackSquare][dir];
+                int directionOffset = DirectionOffsets[dir];
+
+                for (int i = 0; i < n; i++) {
+                    int squareIndex = attackSquare + directionOffset * (i + 1);
+                    int piece = board[squareIndex];
+
+                    // This square contains a piece
+                    if (piece != Piece.None) {
+                        if (Piece.IsColor(piece, friendlyColour)) {
+                            break;
+                        }
+                        // This square contains an enemy piece
+                        else {
+                            int pieceType = Piece.PieceType(piece);
+
+                            // Check if piece is in bitmask of pieces able to move in current direction
+                            if (isDiagonal && Piece.IsBishopOrQueen(pieceType) || !isDiagonal && Piece.IsRookOrQueen(pieceType)) {
+                                return true;
+                            }
+                            else {
+                                // This enemy piece is not able to move in the current direction, and so is blocking any checks/pins
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Knight attacks
+
+            foreach (int attack in KnightJumps[attackSquare]) {
+                if (board[attack] == (Piece.Knight | attackerColour)) {
+                    return true;
+                }
+            }
+
+
+            // check if enemy pawn is controlling this square
+            for (int i = 0; i < 2; i++) {
+                // Check if square exists diagonal to friendly king from which enemy pawn could be attacking it
+                if (NumSquaresToEdge[attackSquare][PawnAttackDirections[friendlyColourIndex][i]] > 0) {
+                    // move in direction friendly pawns attack to get square from which enemy pawn would attack
+                    int s = attackSquare + DirectionOffsets[PawnAttackDirections[friendlyColourIndex][i]];
+
+                    if (board[s] == (Piece.Pawn | attackerColour)) // is enemy pawn
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         private void GenerateSlidingMoves(int start, int color, int startIndex, int endIndex)
@@ -104,6 +179,47 @@ namespace ChessEngine
                     }
                 }
             }
+
+            // Castling
+
+            if (IsSquareAttacked(start, Piece.OppositeColor(color))) return;
+
+            int shortCastle = color == Piece.White ? Board.WK : Board.BK;
+            int longCastle = color == Piece.White ? Board.WQ : Board.BQ;
+
+            int index = color / Piece.Black;
+            if (board.HasCastlingRight(shortCastle)) {
+
+                bool good = true;
+                foreach (int square in CastlingSquares[index * 2]) {
+                    if(board[square] != Piece.None || IsSquareAttacked(square, Piece.OppositeColor(color))){
+                        good = false;
+                        break;
+                    }
+                }
+
+                if (good) {
+                    int dir = DirectionOffsets[3];
+                    moves.Add(new Move(start, start + dir * 2, Move.Flags.CastlingKingSide));
+                }
+            }
+
+            if (board.HasCastlingRight(longCastle)) {
+
+                bool good = true;
+                foreach (int square in CastlingSquares[index * 2 + 1]) {
+                    if (board[square] != Piece.None || IsSquareAttacked(square, Piece.OppositeColor(color))) {
+                        good = false;
+                        break;
+                    }
+                }
+
+                if (good) {
+                    int dir = DirectionOffsets[2];
+                    moves.Add(new Move(start, start + dir * 2, Move.Flags.CastlingQueenSide));
+                }
+            }
+
         }
 
 
@@ -123,9 +239,14 @@ namespace ChessEngine
             }
 
             // Capture 
-            foreach (int attack in data.attacks[start]) {
-                if (Piece.IsColor(board[attack], Piece.OppositeColor(colorToMove))) {
-                    moves.Add(new Move(start, attack));
+            int index = colorToMove / Piece.Black;
+            for (int i = 0; i < 2; i++) {
+                if (NumSquaresToEdge[start][PawnAttackDirections[index][i]] > 0) {
+                    int attack = start + DirectionOffsets[PawnAttackDirections[index][i]];
+
+                    if (Piece.IsColor(board[attack], Piece.OppositeColor(colorToMove))) {
+                        moves.Add(new Move(start, attack));
+                    }
                 }
             }
 

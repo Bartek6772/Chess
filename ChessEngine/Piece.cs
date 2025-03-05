@@ -16,7 +16,7 @@ namespace ChessEngine
         public const int Queen = 5;
         public const int King = 6;
 
-        public const int White = 0;
+        public const int White = 0; // Changing this requires updating logic in move generation
         public const int Black = 8;
 
         public const int WhitePawn = Pawn | White;
@@ -41,7 +41,9 @@ namespace ChessEngine
         public static int PieceColor(int piece) => piece & colorMask;
         public static int PieceType(int piece) => piece & typeMask;
         public static int OppositeColor(int color) => color == White ? Black : White;
-
         public static bool IsColor(int piece, int color) => piece != None && (piece & colorMask) == color;
+
+        public static bool IsBishopOrQueen(int piece) => PieceType(piece) is Bishop or Queen;
+        public static bool IsRookOrQueen(int piece) => PieceType(piece) is Rook or Queen;
     }
 }
