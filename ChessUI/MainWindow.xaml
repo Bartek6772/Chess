@@ -89,7 +89,10 @@
                 </Grid>
             </Viewbox>
 
-            <Button Content="Undo" Grid.Row="1" Width="200" Height="50" Click="UndoButton_Click"/>
+            <WrapPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Button Content="Undo" Width="200" Height="50" Click="UndoButton_Click" Margin="10"/>
+                <Button Content="Rotate" Width="200" Height="50" Click="RotateButton_Click" Margin="10"/>
+            </WrapPanel>
         </Grid>
         
         

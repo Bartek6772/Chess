@@ -77,13 +77,18 @@ public partial class MainWindow : Window
     {
         for (int row = 0; row < 8; row++) {
             for (int col = 0; col < 8; col++) {
-                images[col, row].Source = Images.sources[board[(7 - row) * 8 + col]];
+                images[col, row].Source = Images.sources[board[GridToBoard(row, col)]];
             }
         }
     }
 
+    bool rotated = false;
+
     private int GridToBoard(int row, int col)
     {
+        if (rotated) {
+            return row * 8 + (7 - col);
+        }
         return (7 - row) * 8 + col;
     }
 
@@ -98,17 +103,24 @@ public partial class MainWindow : Window
 
     private void DrawHighlights()
     {
+        SolidColorBrush brush = new SolidColorBrush(Color.FromArgb(100, 252, 186, 3));
         for (int i = 0; i < moves.Count; i++) {
             if (moves[i].StartSquare == selectedSquare) {
 
                 int x = moves[i].TargetSquare % 8;
                 int y = moves[i].TargetSquare / 8;
 
-                highlights[x, 7 - y].Fill = new SolidColorBrush(Color.FromArgb(100, 252, 186, 3));
+                if (rotated) {
+                    highlights[7 - x, y].Fill = brush;
+                }
+                else {
+                    highlights[x, 7 - y].Fill = brush;
+                }
             }
         }
     }
 
+    #region Handling Moves
     private int selectedSquare = -1;
     private void SelectSquare(int row, int col)
     {
@@ -131,7 +143,6 @@ public partial class MainWindow : Window
         DrawHighlights();
     }
 
-    #region Handling Moves
     private Image draggedPiece = null;  // Original chess piece
     private Image dragOverlay = null;   // Floating piece
     private Point mouseOffset;
@@ -311,5 +322,13 @@ public partial class MainWindow : Window
     {
         board.UnmakeMove();
         RefreshBoard();
+    }
+
+    private void RotateButton_Click(object sender, RoutedEventArgs e)
+    {
+        rotated = !rotated;
+        ClearHighlights();
+        DrawHighlights();
+        DrawBoard();
     }
 }
