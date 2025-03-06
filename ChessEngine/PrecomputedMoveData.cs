@@ -29,14 +29,15 @@ namespace ChessEngine
         };
 
         public readonly static PawnDataStruct[] PawnData = {
-            new() { direction = 0, doublePushLine = 1, attacksDirections = [4, 6] },
-            new() { direction = 1, doublePushLine = 6, attacksDirections = [5, 7] }
+            new() { direction = 0, doublePushLine = 1, promotionLine = 7, attacksDirections = [4, 6] },
+            new() { direction = 1, doublePushLine = 6, promotionLine = 0, attacksDirections = [5, 7] }
         };
 
         public struct PawnDataStruct
         {
             public int direction;
             public int doublePushLine;
+            public int promotionLine;
             public int[] attacksDirections;
         }
 

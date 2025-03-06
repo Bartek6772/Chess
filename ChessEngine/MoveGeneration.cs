@@ -227,7 +227,17 @@ namespace ChessEngine
             // Push
             int target = start + DirectionOffsets[PawnData[index].direction];
             if (board[target] == Piece.None) {
-                moves.Add(new Move(start, target));
+
+                // Promotion
+                if (target / 8 == PawnData[index].promotionLine) {
+                    moves.Add(new Move(start, target, Move.Flags.PromotionQueen));
+                    moves.Add(new Move(start, target, Move.Flags.PromotionRook));
+                    moves.Add(new Move(start, target, Move.Flags.PromotionKnight));
+                    moves.Add(new Move(start, target, Move.Flags.PromotionBishop));
+                }
+                else {
+                    moves.Add(new Move(start, target));
+                }
 
                 // Double Push
                 if (start / 8 == PawnData[index].doublePushLine && board[target + DirectionOffsets[PawnData[index].direction]] == Piece.None) {
@@ -241,7 +251,17 @@ namespace ChessEngine
                     int attack = start + DirectionOffsets[PawnData[index].attacksDirections[i]];
 
                     if (Piece.IsColor(board[attack], Piece.OppositeColor(colorToMove))) {
-                        moves.Add(new Move(start, attack));
+
+                        // Promotion
+                        if (target / 8 == PawnData[index].promotionLine) {
+                            moves.Add(new Move(start, attack, Move.Flags.PromotionQueen));
+                            moves.Add(new Move(start, attack, Move.Flags.PromotionRook));
+                            moves.Add(new Move(start, attack, Move.Flags.PromotionKnight));
+                            moves.Add(new Move(start, attack, Move.Flags.PromotionBishop));
+                        }
+                        else {
+                            moves.Add(new Move(start, attack));
+                        }
                     }
 
                     // En passant
@@ -250,8 +270,6 @@ namespace ChessEngine
                     }
                 }
             }
-
-            // Promotion
         }
 
 

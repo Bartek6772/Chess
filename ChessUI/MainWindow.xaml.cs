@@ -71,6 +71,10 @@ public partial class MainWindow : Window
         ClearHighlights();
 
         moves = moveGen.GenerateMoves();
+
+        if(moves.Count == 0) {
+            MessageBox.Show("Checkmate or stalemate");
+        }
     }
 
     private void DrawBoard()
@@ -130,6 +134,18 @@ public partial class MainWindow : Window
                 int target = GridToBoard(row, col);
                 if (moves[i].StartSquare == selectedSquare && moves[i].TargetSquare == target) {
 
+                    if (moves[i].IsPromotion()) {
+
+                        // ask for piece (if not asked before)
+                        // if match do move
+                        // else continue
+
+                        if (moves[i].MoveFlag != Move.Flags.PromotionQueen) {
+                            continue;
+                        }
+
+                    }
+                    
                     board.MakeMove(moves[i]);
                     selectedSquare = -1;
                     RefreshBoard();

@@ -31,5 +31,7 @@ namespace ChessEngine
             CastlingQueenSide = 7,
             DoublePush = 8,
         }
+
+        public bool IsPromotion() => MoveFlag is Flags.PromotionRook or Flags.PromotionQueen or Flags.PromotionBishop or Flags.PromotionKnight;
     }
 }

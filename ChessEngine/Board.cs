@@ -117,6 +117,18 @@ namespace ChessEngine
                 pieceList[this[enPassant]].RemovePiece(enPassant);
                 this[enPassant] = Piece.None;
             }
+            else if (move.MoveFlag == Move.Flags.PromotionQueen) {
+                Promote(Piece.Queen, move);
+            }
+            else if (move.MoveFlag == Move.Flags.PromotionBishop) {
+                Promote(Piece.Bishop, move);
+            }
+            else if (move.MoveFlag == Move.Flags.PromotionKnight) {
+                Promote(Piece.Knight, move);
+            }
+            else if (move.MoveFlag == Move.Flags.PromotionRook) {
+                Promote(Piece.Rook, move);
+            }
 
             if (move.MoveFlag == Move.Flags.DoublePush) {
                 int dir = PrecomputedMoveData.PawnData[colorToMove].direction;
@@ -154,6 +166,29 @@ namespace ChessEngine
             history.Push(newGS);
         }
 
+        private void Promote(int piece, Move move)
+        {
+            Debug.WriteLine("promotion");
+            int pawn = Piece.Pawn | (colorToMove * Piece.Black);
+
+            int promotionPiece = piece | (colorToMove * Piece.Black);
+            pieceList[pawn].RemovePiece(move.TargetSquare);
+            pieceList[promotionPiece].AddPiece(move.TargetSquare);
+            this[move.TargetSquare] = promotionPiece;
+        }
+
+        private void UnPromote(Move move)
+        {
+            // Firstly moving piece back, than changing it back
+            int pawn = Piece.Pawn | (colorToMove * Piece.Black);
+            int promotionPiece = this[move.StartSquare];
+
+            pieceList[pawn].AddPiece(move.StartSquare);
+            pieceList[promotionPiece].RemovePiece(move.StartSquare);
+
+            this[move.StartSquare] = pawn;
+        }
+
         public void UnmakeMove()
         {
             if(history.Count == 0) {
@@ -189,6 +224,9 @@ namespace ChessEngine
                 int p = Piece.Pawn | (colorToMove == 0 ? Piece.Black : Piece.White);
                 pieceList[p].AddPiece(enPassant);
                 this[enPassant] = p;
+            }
+            else if (oldGS.move.IsPromotion()) {
+                UnPromote(oldGS.move);
             }
 
             castlingRights = oldGS.castlingRights;
