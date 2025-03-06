@@ -114,20 +114,18 @@ namespace ChessEngine
             }
 
             // Knight attacks
-
             foreach (int attack in KnightJumps[attackSquare]) {
                 if (board[attack] == (Piece.Knight | attackerColour)) {
                     return true;
                 }
             }
 
-
             // check if enemy pawn is controlling this square
             for (int i = 0; i < 2; i++) {
                 // Check if square exists diagonal to friendly king from which enemy pawn could be attacking it
-                if (NumSquaresToEdge[attackSquare][PawnAttackDirections[friendlyColourIndex][i]] > 0) {
+                if (NumSquaresToEdge[attackSquare][PawnData[friendlyColourIndex].attacksDirections[i]] > 0) {
                     // move in direction friendly pawns attack to get square from which enemy pawn would attack
-                    int s = attackSquare + DirectionOffsets[PawnAttackDirections[friendlyColourIndex][i]];
+                    int s = attackSquare + DirectionOffsets[PawnData[friendlyColourIndex].attacksDirections[i]];
 
                     if (board[s] == (Piece.Pawn | attackerColour)) // is enemy pawn
                     {
@@ -219,39 +217,41 @@ namespace ChessEngine
                     moves.Add(new Move(start, start + dir * 2, Move.Flags.CastlingQueenSide));
                 }
             }
-
         }
 
 
         private void GeneratePawnMoves(int start, int colorToMove)
         {
-            PawnData data = colorToMove == Piece.White ? WhitePawnData : BlackPawnData;
+            int index = colorToMove / Piece.Black;
 
             // Push
-            int target = start + DirectionOffsets[data.direction];
+            int target = start + DirectionOffsets[PawnData[index].direction];
             if (board[target] == Piece.None) {
                 moves.Add(new Move(start, target));
 
                 // Double Push
-                if (start / 8 == data.doublePushLine && board[target + DirectionOffsets[data.direction]] == Piece.None) {
-                    moves.Add(new Move(start, target + DirectionOffsets[data.direction]));
+                if (start / 8 == PawnData[index].doublePushLine && board[target + DirectionOffsets[PawnData[index].direction]] == Piece.None) {
+                    moves.Add(new Move(start, target + DirectionOffsets[PawnData[index].direction], Move.Flags.DoublePush));
                 }
             }
 
             // Capture 
-            int index = colorToMove / Piece.Black;
             for (int i = 0; i < 2; i++) {
-                if (NumSquaresToEdge[start][PawnAttackDirections[index][i]] > 0) {
-                    int attack = start + DirectionOffsets[PawnAttackDirections[index][i]];
+                if (NumSquaresToEdge[start][PawnData[index].attacksDirections[i]] > 0) {
+                    int attack = start + DirectionOffsets[PawnData[index].attacksDirections[i]];
 
                     if (Piece.IsColor(board[attack], Piece.OppositeColor(colorToMove))) {
                         moves.Add(new Move(start, attack));
+                    }
+
+                    // En passant
+                    if (attack == board.enpassantSquare) {
+                        moves.Add(new Move(start, attack, Move.Flags.EnPassant));
                     }
                 }
             }
 
             // Promotion
-            // En passant
         }
 
 

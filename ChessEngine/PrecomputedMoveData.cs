@@ -13,9 +13,6 @@ namespace ChessEngine
 
         public readonly static int[][] KnightJumps;
 
-        public readonly static PawnData WhitePawnData = new() { direction = 0, doublePushLine = 1 };
-        public readonly static PawnData BlackPawnData = new() { direction = 1, doublePushLine = 6 };
-
         // white short-long ...
         public readonly static int[][] CastlingSquares = {
             [5, 6],
@@ -31,16 +28,16 @@ namespace ChessEngine
             [56, 59]
         };
 
-        public readonly static int[][] PawnAttackDirections = {
-            [4, 6],
-            [5, 7],
+        public readonly static PawnDataStruct[] PawnData = {
+            new() { direction = 0, doublePushLine = 1, attacksDirections = [4, 6] },
+            new() { direction = 1, doublePushLine = 6, attacksDirections = [5, 7] }
         };
 
-        public struct PawnData
+        public struct PawnDataStruct
         {
             public int direction;
             public int doublePushLine;
-            public int[][] attacks;
+            public int[] attacksDirections;
         }
 
         static PrecomputedMoveData()

@@ -33,24 +33,12 @@ namespace ChessEngine
 
         public int castlingRights = 0b1111;
 
-        public void RemoveCastling(int rights)
-        {
-            castlingRights &= ~rights;
-        }
+        public int enpassantSquare = -1;
 
-        public void AddCastling(int rights)
-        {
-            castlingRights |= rights;
-        }
-
-        public bool HasCastlingRight(int rights)
-        {
-            return (castlingRights & rights) != 0;
-        }
+        
 
         public Board()
         {
-            // idea: add initial gameState for implementaion
             history = new Stack<GameState>();
             LoadPositionFromFEN(startFEN);
         }
@@ -60,6 +48,7 @@ namespace ChessEngine
             public Move move;
             public int capturedPiece;
             public int castlingRights;
+            public int enpassantSquare;
         }
 
         public void LoadPositionFromFEN(string fen)
@@ -102,6 +91,7 @@ namespace ChessEngine
             GameState newGS = new() { move = move };
             newGS.capturedPiece = this[move.TargetSquare];
             newGS.castlingRights = castlingRights;
+            newGS.enpassantSquare = enpassantSquare;
 
             int piece = this[move.StartSquare];
 
@@ -113,14 +103,31 @@ namespace ChessEngine
             this[move.TargetSquare] = piece;
             this[move.StartSquare] = Piece.None;
 
+            // Move Flags
             if (move.MoveFlag == Move.Flags.CastlingKingSide) {
                 Castle(colorToMove * 2, 0);
             }
             else if (move.MoveFlag == Move.Flags.CastlingQueenSide) {
                 Castle(colorToMove * 2 + 1, 0);
             }
+            else if (move.MoveFlag == Move.Flags.EnPassant) {
+                int dir = PrecomputedMoveData.PawnData[colorToMove].direction;
+                int enPassant = move.TargetSquare - PrecomputedMoveData.DirectionOffsets[dir];
 
-            if(piece == Piece.WhiteKing) {
+                pieceList[this[enPassant]].RemovePiece(enPassant);
+                this[enPassant] = Piece.None;
+            }
+
+            if (move.MoveFlag == Move.Flags.DoublePush) {
+                int dir = PrecomputedMoveData.PawnData[colorToMove].direction;
+                enpassantSquare = move.TargetSquare - PrecomputedMoveData.DirectionOffsets[dir];
+            }
+            else {
+                enpassantSquare = -1;
+            }
+
+            // Castling rights
+            if (piece == Piece.WhiteKing) {
                 RemoveCastling(WK);
                 RemoveCastling(WQ);
             }
@@ -128,8 +135,8 @@ namespace ChessEngine
                 RemoveCastling(BK);
                 RemoveCastling(BQ);
             }
-            else if(Piece.PieceType(piece) == Piece.Rook) {
-                if(move.StartSquare == 0) {
+            else if (Piece.PieceType(piece) == Piece.Rook) {
+                if (move.StartSquare == 0) {
                     RemoveCastling(WQ);
                 }
                 else if (move.StartSquare == 7) {
@@ -175,10 +182,20 @@ namespace ChessEngine
             else if (oldGS.move.MoveFlag == Move.Flags.CastlingQueenSide) {
                 Castle(colorToMove * 2 + 1, 1);
             }
+            else if (oldGS.move.MoveFlag == Move.Flags.EnPassant) {
+                int dir = PrecomputedMoveData.PawnData[colorToMove].direction;
+                int enPassant = oldGS.move.TargetSquare - PrecomputedMoveData.DirectionOffsets[dir];
+
+                int p = Piece.Pawn | (colorToMove == 0 ? Piece.Black : Piece.White);
+                pieceList[p].AddPiece(enPassant);
+                this[enPassant] = p;
+            }
 
             castlingRights = oldGS.castlingRights;
+            enpassantSquare = oldGS.enpassantSquare;
         }
 
+        #region Castling
         private void Castle(int idx, int b)
         {
             int rook = this[PrecomputedMoveData.RooksCastlingPositions[idx][b]];
@@ -190,6 +207,22 @@ namespace ChessEngine
 
             pieceList[rook].MovePiece(start, end);
         }
+
+        public void RemoveCastling(int rights)
+        {
+            castlingRights &= ~rights;
+        }
+
+        public void AddCastling(int rights)
+        {
+            castlingRights |= rights;
+        }
+
+        public bool HasCastlingRight(int rights)
+        {
+            return (castlingRights & rights) != 0;
+        }
+        #endregion
 
         private void InitializePieceList()
         {

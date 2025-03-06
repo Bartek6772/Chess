@@ -28,7 +28,8 @@ namespace ChessEngine
             PromotionQueen = 4,
             EnPassant = 5,
             CastlingKingSide = 6,
-            CastlingQueenSide = 7
+            CastlingQueenSide = 7,
+            DoublePush = 8,
         }
     }
 }
