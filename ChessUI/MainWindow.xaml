@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ChessUI"
         mc:Ignorable="d"
-        Width="512" SizeToContent="Height"
+        Width="562" SizeToContent="Height"
         WindowStyle="None"
         ResizeMode="CanResizeWithGrip"
         AllowsTransparency="True"
@@ -37,6 +37,7 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
+
     </Window.Resources>
     
     <Grid>
@@ -79,15 +80,38 @@
                 <RowDefinition Height="512"/>
                 <RowDefinition Height="100"/>
             </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="50"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!--
+                <StackPanel Grid.Column="0" Name="EvaluationBar">
+                    <Rectangle Name="WhiteAdvantage" Fill="White"/>
+                    <Rectangle Name="BlackAdvantage" Fill="Black"/>
+                </StackPanel>-->
+                
+                <StackPanel Grid.Column="0" Name="EvaluationBar" Background="Black">
+                    <Rectangle Name="WhiteAdvantage" Fill="White" Height="256">
+                        <Rectangle.RenderTransform>
+                            <ScaleTransform ScaleY="1" CenterY="1"/>
+                        </Rectangle.RenderTransform>
+                    </Rectangle>
+                </StackPanel>
+
+                <Viewbox Grid.Column="1">
+                    <Grid Width="512" Height="512" Name="Chessboard">
+                        <UniformGrid Name="Background" Rows="8" Columns="8"/>
+                        <UniformGrid Name="HighlightGrid" Rows="8" Columns="8"/>
+                        <UniformGrid Name="ChessPieces" Rows="8" Columns="8" RenderOptions.BitmapScalingMode="HighQuality"/>
+                        <Canvas Name="DragLayer" IsHitTestVisible="False"/>
+                    </Grid>
+                </Viewbox>
+            </Grid>
             
-            <Viewbox Grid.Row="0">
-                <Grid Width="512" Height="512" Name="Chessboard">
-                    <UniformGrid Name="Background" Rows="8" Columns="8"/>
-                    <UniformGrid Name="HighlightGrid" Rows="8" Columns="8"/>
-                    <UniformGrid Name="ChessPieces" Rows="8" Columns="8" RenderOptions.BitmapScalingMode="HighQuality"/>
-                    <Canvas Name="DragLayer" IsHitTestVisible="False"/>
-                </Grid>
-            </Viewbox>
+            
 
             <WrapPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <Button Content="Undo" Width="200" Height="50" Click="UndoButton_Click" Margin="10"/>

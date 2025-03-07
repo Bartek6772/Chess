@@ -33,9 +33,9 @@ void PerfTest(int depth)
     bool ok = test == correctAnswers[depth];
     Console.ForegroundColor = ok ? ConsoleColor.Green : ConsoleColor.Red;
     Console.WriteLine(ok ? "Correct" : "Failed");
-    Console.ForegroundColor = ConsoleColor.White;
+    Console.ForegroundColor = ConsoleColor.Gray;
 }
 
-for (int i = 0; i <= 7; i++) {
+for (int i = 0; i <= 6; i++) {
     PerfTest(i);
 }

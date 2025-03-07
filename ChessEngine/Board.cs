@@ -32,10 +32,7 @@ namespace ChessEngine
         public const int BQ = 8; // 1000 (q)
 
         public int castlingRights = 0b1111;
-
         public int enpassantSquare = -1;
-
-        
 
         public Board()
         {
@@ -147,46 +144,23 @@ namespace ChessEngine
                 RemoveCastling(BK);
                 RemoveCastling(BQ);
             }
-            else if (Piece.PieceType(piece) == Piece.Rook) {
-                if (move.StartSquare == 0) {
-                    RemoveCastling(WQ);
-                }
-                else if (move.StartSquare == 7) {
-                    RemoveCastling(WK);
-                }
-                else if (move.StartSquare == 63) {
-                    RemoveCastling(BK);
-                }
-                else if (move.StartSquare == 56) {
-                    RemoveCastling(BQ);
-                }
+
+            if (move.StartSquare == 0 || move.TargetSquare == 0) {
+                RemoveCastling(WQ);
             }
+            else if (move.StartSquare == 7 || move.TargetSquare == 7) {
+                RemoveCastling(WK);
+            }
+            else if (move.StartSquare == 63 || move.TargetSquare == 63) {
+                RemoveCastling(BK);
+            }
+            else if (move.StartSquare == 56 || (move.TargetSquare == 56)) {
+                RemoveCastling(BQ);
+            }
+
 
             colorToMove = 1 - colorToMove;
             history.Push(newGS);
-        }
-
-        private void Promote(int piece, Move move)
-        {
-            Debug.WriteLine("promotion");
-            int pawn = Piece.Pawn | (colorToMove * Piece.Black);
-
-            int promotionPiece = piece | (colorToMove * Piece.Black);
-            pieceList[pawn].RemovePiece(move.TargetSquare);
-            pieceList[promotionPiece].AddPiece(move.TargetSquare);
-            this[move.TargetSquare] = promotionPiece;
-        }
-
-        private void UnPromote(Move move)
-        {
-            // Firstly moving piece back, than changing it back
-            int pawn = Piece.Pawn | (colorToMove * Piece.Black);
-            int promotionPiece = this[move.StartSquare];
-
-            pieceList[pawn].AddPiece(move.StartSquare);
-            pieceList[promotionPiece].RemovePiece(move.StartSquare);
-
-            this[move.StartSquare] = pawn;
         }
 
         public void UnmakeMove()
@@ -233,6 +207,30 @@ namespace ChessEngine
             enpassantSquare = oldGS.enpassantSquare;
         }
 
+        #region Promotion
+        private void Promote(int piece, Move move)
+        {
+            int pawn = Piece.Pawn | (colorToMove * Piece.Black);
+
+            int promotionPiece = piece | (colorToMove * Piece.Black);
+            pieceList[pawn].RemovePiece(move.TargetSquare);
+            pieceList[promotionPiece].AddPiece(move.TargetSquare);
+            this[move.TargetSquare] = promotionPiece;
+        }
+
+        private void UnPromote(Move move)
+        {
+            // Firstly moving piece back, than changing it back
+            int pawn = Piece.Pawn | (colorToMove * Piece.Black);
+            int promotionPiece = this[move.StartSquare];
+
+            pieceList[pawn].AddPiece(move.StartSquare);
+            pieceList[promotionPiece].RemovePiece(move.StartSquare);
+
+            this[move.StartSquare] = pawn;
+        }
+        #endregion
+
         #region Castling
         private void Castle(int idx, int b)
         {
@@ -261,6 +259,12 @@ namespace ChessEngine
             return (castlingRights & rights) != 0;
         }
         #endregion
+
+        public Move? LastMove()
+        {
+            if (history.Count == 0) return null;
+            return history.Peek().move;
+        }
 
         private void InitializePieceList()
         {

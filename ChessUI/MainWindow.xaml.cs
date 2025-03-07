@@ -1,9 +1,11 @@
 ﻿using ChessEngine;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 
 namespace ChessUI;
@@ -19,6 +21,7 @@ public partial class MainWindow : Window
     private Board board;
     private MoveGeneration moveGen;
     private List<Move> moves;
+    private Search search;
 
     public MainWindow()
     {
@@ -29,7 +32,17 @@ public partial class MainWindow : Window
         moveGen = new MoveGeneration(board);
         moves = moveGen.GenerateMoves();
 
+        search = new Search(board);
+
         DrawBoard();
+        UpdateEvaluationBar(0);
+
+        EvaluationBar.Loaded += (s, e) =>
+        {
+            double height = EvaluationBar.ActualHeight;
+            Debug.WriteLine($"EvalBar Height: {height}");
+            UpdateEvaluationBar(0);
+        };
     }
 
     private void InitializeBoard()
@@ -65,10 +78,30 @@ public partial class MainWindow : Window
         Chessboard.MouseLeftButtonUp += Chessboard_MouseLeftButtonUp;
     }
 
+    public void UpdateEvaluationBar(double eval)
+    {
+        double normalized = Math.Clamp((eval + 1000) / 1000, 0, 2);
+        double height = EvaluationBar.ActualHeight;
+        double newWhiteHeight = normalized;
+
+        ScaleTransform whiteTransform = (ScaleTransform)WhiteAdvantage.RenderTransform;
+        DoubleAnimation whiteAnim = new DoubleAnimation {
+            To = newWhiteHeight,
+            Duration = TimeSpan.FromMilliseconds(500),
+            EasingFunction = new QuadraticEase() { EasingMode = EasingMode.EaseInOut }
+        };
+
+        whiteTransform.BeginAnimation(ScaleTransform.ScaleYProperty, whiteAnim);
+    }
+
     private void RefreshBoard()
     {
         DrawBoard();
         ClearHighlights();
+        DrawLastMove();
+
+        int eval = Evaluation.Evaluate(board);
+        UpdateEvaluationBar(eval);
 
         moves = moveGen.GenerateMoves();
 
@@ -76,6 +109,7 @@ public partial class MainWindow : Window
             MessageBox.Show("Checkmate or stalemate");
         }
     }
+
 
     private void DrawBoard()
     {
@@ -107,21 +141,57 @@ public partial class MainWindow : Window
 
     private void DrawHighlights()
     {
-        SolidColorBrush brush = new SolidColorBrush(Color.FromArgb(100, 252, 186, 3));
+        //SolidColorBrush brush = new SolidColorBrush(Color.FromArgb(100, 52, 56, 64));
+        SolidColorBrush brush = new SolidColorBrush(Color.FromArgb(100, 74, 74, 71));
+
         for (int i = 0; i < moves.Count; i++) {
             if (moves[i].StartSquare == selectedSquare) {
-
-                int x = moves[i].TargetSquare % 8;
-                int y = moves[i].TargetSquare / 8;
-
-                if (rotated) {
-                    highlights[7 - x, y].Fill = brush;
-                }
-                else {
-                    highlights[x, 7 - y].Fill = brush;
-                }
+                ColorHighlight(moves[i].TargetSquare, brush);
             }
         }
+
+        DrawLastMove();
+    }
+
+    private void DrawLastMove()
+    {
+        //SolidColorBrush brush = new SolidColorBrush(Color.FromArgb(100, 252, 186, 3));
+        SolidColorBrush brush = new SolidColorBrush(Color.FromArgb(120, 245, 190, 39));
+        Move? lastMove = board.LastMove();
+
+        if (lastMove.HasValue) {
+            ColorHighlight(lastMove.Value.StartSquare, brush);
+            ColorHighlight(lastMove.Value.TargetSquare, brush);
+        }
+    }
+
+    private void ColorHighlight(int square, SolidColorBrush brush)
+    {
+        int x = square % 8;
+        int y = square / 8;
+
+        if (rotated) {
+            highlights[7 - x, y].Fill = brush;
+        }
+        else {
+            highlights[x, 7 - y].Fill = brush;
+        }
+    }
+
+    public void FindBestMoveInBackground()
+    {
+        Thread thread = new Thread(() => {
+            Move? bestMove = search.FindBestMove(6);
+
+            if (bestMove.HasValue) {
+                this.Dispatcher.Invoke(() => {
+                    board.MakeMove(bestMove.Value);
+                    RefreshBoard();
+                });
+            }
+        });
+        thread.IsBackground = true;
+        thread.Start();
     }
 
     #region Handling Moves
@@ -149,6 +219,8 @@ public partial class MainWindow : Window
                     board.MakeMove(moves[i]);
                     selectedSquare = -1;
                     RefreshBoard();
+
+                    FindBestMoveInBackground();
                     return;
                 }
             }
@@ -172,6 +244,7 @@ public partial class MainWindow : Window
         mouseDownPosition = e.GetPosition(Chessboard);
         int row = (int)(mouseDownPosition.Y / 64);
         int col = (int)(mouseDownPosition.X / 64);
+        Debug.WriteLine("Mouse button down");
         SelectSquare(row, col);
 
         draggedPiece = images[col, row];
@@ -234,6 +307,7 @@ public partial class MainWindow : Window
             DragLayer.Children.Remove(dragOverlay);
             dragOverlay = null;
 
+            Debug.WriteLine("Mouse button up");
             SelectSquare(row, column);
         }
         else {
