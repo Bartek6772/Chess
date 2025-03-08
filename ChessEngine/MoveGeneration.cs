@@ -8,7 +8,7 @@ using static ChessEngine.PrecomputedMoveData;
 
 namespace ChessEngine
 {
-    public class MoveGeneration
+    class MoveGeneration
     {
         Board board;
         List<Move> moves;
@@ -189,8 +189,15 @@ namespace ChessEngine
             if (board.HasCastlingRight(shortCastle)) {
 
                 bool good = true;
-                foreach (int square in CastlingSquares[index * 2]) {
-                    if(board[square] != Piece.None || IsSquareAttacked(square, Piece.OppositeColor(color))){
+                foreach (int square in CastlingSquaresEmpty[index * 2]) {
+                    if(board[square] != Piece.None){
+                        good = false;
+                        break;
+                    }
+                }
+
+                foreach (int square in CastlingSquaresNotAttacked[index * 2]) {
+                    if (IsSquareAttacked(square, Piece.OppositeColor(color))) {
                         good = false;
                         break;
                     }
@@ -205,8 +212,15 @@ namespace ChessEngine
             if (board.HasCastlingRight(longCastle)) {
 
                 bool good = true;
-                foreach (int square in CastlingSquares[index * 2 + 1]) {
-                    if (board[square] != Piece.None || IsSquareAttacked(square, Piece.OppositeColor(color))) {
+                foreach (int square in CastlingSquaresEmpty[index * 2 + 1]) {
+                    if (board[square] != Piece.None) {
+                        good = false;
+                        break;
+                    }
+                }
+
+                foreach (int square in CastlingSquaresNotAttacked[index * 2 + 1]) {
+                    if (IsSquareAttacked(square, Piece.OppositeColor(color))) {
                         good = false;
                         break;
                     }

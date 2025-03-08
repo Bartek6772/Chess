@@ -14,11 +14,18 @@ namespace ChessEngine
         public readonly static int[][] KnightJumps;
 
         // white short-long ...
-        public readonly static int[][] CastlingSquares = {
+        public readonly static int[][] CastlingSquaresEmpty = {
             [5, 6],
             [1, 2, 3],
             [61, 62],
-            [59, 58, 57]
+            [57, 58, 59]
+        };
+
+        public readonly static int[][] CastlingSquaresNotAttacked = {
+            [5, 6],
+            [2, 3],
+            [61, 62],
+            [58, 59]
         };
 
         public readonly static int[][] RooksCastlingPositions = {

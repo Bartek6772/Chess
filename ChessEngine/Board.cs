@@ -34,10 +34,16 @@ namespace ChessEngine
         public int castlingRights = 0b1111;
         public int enpassantSquare = -1;
 
+        private MoveGeneration moveGeneration;
+
+        public List<Move> GenerateMoves() => moveGeneration.GenerateMoves();
+
         public Board()
         {
             history = new Stack<GameState>();
-            LoadPositionFromFEN(startFEN);
+            moveGeneration = new MoveGeneration(this);
+            //LoadPositionFromFEN(startFEN);
+            LoadPositionFromFEN("r3k2r/p1pp1pb1/bn2pnp1/2qPN3/1p2P3/P1N2Q1p/1PPBBPPP/R3K2R w KQkq");
         }
 
         public struct GameState
@@ -50,6 +56,10 @@ namespace ChessEngine
 
         public void LoadPositionFromFEN(string fen)
         {
+            Squares = new int[64];
+            castlingRights = 0b1111;
+            enpassantSquare = -1;
+
             var pieceTypeFromSymbol = new Dictionary<char, int> {
                 ['k'] = Piece.King,
                 ['q'] = Piece.Queen,
@@ -80,6 +90,22 @@ namespace ChessEngine
                 }
             }
 
+            string[] f = fen.Split(' ');
+
+            if(f.Length > 1) {
+                colorToMove = (f[1] == "w" ? 0 : 1);
+            }
+
+            if (f.Length > 2) {
+                castlingRights = 0b0000;
+                foreach (char c in f[2]) {
+                    if (c == 'K') AddCastling(WK);
+                    else if (c == 'Q') AddCastling(WQ);
+                    else if (c == 'k') AddCastling(BK);
+                    else if (c == 'q') AddCastling(BQ);
+                }
+            }
+
             InitializePieceList();
         }
 
@@ -92,7 +118,15 @@ namespace ChessEngine
 
             int piece = this[move.StartSquare];
 
-            pieceList[piece].MovePiece(move.StartSquare, move.TargetSquare);
+            try {
+                pieceList[piece].MovePiece(move.StartSquare, move.TargetSquare);
+            }
+            catch (NullReferenceException e) {
+
+                Debug.WriteLine($"{piece} {move.ToString} {move.StartSquare} {move.TargetSquare}");
+                //throw;
+            }
+
             if (newGS.capturedPiece != Piece.None) {
                 pieceList[newGS.capturedPiece].RemovePiece(move.TargetSquare);
             }

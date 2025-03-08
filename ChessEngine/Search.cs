@@ -10,12 +10,10 @@ namespace ChessEngine
     public class Search
     {
         Board board;
-        MoveGeneration moveGeneration;
 
         public Search(Board board)
         {
             this.board = board;
-            moveGeneration = new MoveGeneration(board);
         }
 
         public async Task<Move?> FindBestMoveAsync(int depth)
@@ -27,7 +25,7 @@ namespace ChessEngine
         {
             int bestMoveValue = int.MaxValue;
 
-            List<Move> moves = moveGeneration.GenerateMoves();
+            List<Move> moves = board.GenerateMoves();
 
             if(moves.Count == 0) {
                 return null;
@@ -62,7 +60,7 @@ namespace ChessEngine
                 return Evaluation.Evaluate(board);
             }
 
-            List<Move> moves = moveGeneration.GenerateMoves();
+            List<Move> moves = board.GenerateMoves();
 
             if (maximizing) {
                 int maxVal = int.MinValue;

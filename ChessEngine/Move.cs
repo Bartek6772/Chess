@@ -33,5 +33,19 @@ namespace ChessEngine
         }
 
         public bool IsPromotion() => MoveFlag is Flags.PromotionRook or Flags.PromotionQueen or Flags.PromotionBishop or Flags.PromotionKnight;
+
+        public override string ToString()
+        {
+            int x = StartSquare % 8;
+            int y = StartSquare / 8;
+            string result = "";
+
+            result += (char)('a' + x) + (y + 1).ToString();
+            x = TargetSquare % 8;
+            y = TargetSquare / 8;
+            result += (char)('a' + x) + (y + 1).ToString();
+
+            return result;
+        }
     }
 }
