@@ -23,11 +23,15 @@ namespace ChessEngine
 
         public Move? FindBestMove(int depth)
         {
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+
             int bestMoveValue = int.MaxValue;
 
             List<Move> moves = board.GenerateMoves();
+            moves = moves.OrderByDescending(move => MoveHeuristic(move)).ToList();
 
-            if(moves.Count == 0) {
+            if (moves.Count == 0) {
                 return null;
             }
 
@@ -46,6 +50,9 @@ namespace ChessEngine
                     bestMove = move;
                 }
             }
+
+            stopwatch.Stop();
+            Debug.WriteLine("Search time: " + stopwatch.ElapsedMilliseconds);
 
             if(bestMove.StartSquare == -1) {
                 return null;
@@ -99,5 +106,24 @@ namespace ChessEngine
             //return board.IsCheckmate() || board.IsStalemate() || board.IsDraw();
             return false;
         }
+
+        public int MoveHeuristic(Move move)
+        {
+            int score = 0;
+
+            int piece = board[move.StartSquare];
+            int capturePiece = board[move.TargetSquare];
+
+            if(capturePiece != Piece.None) {
+                score = 10 * Evaluation.GetPieceValue(capturePiece) - Evaluation.GetPieceValue(piece);
+            }
+
+            if (move.IsPromotion()) {
+                score += 500;
+            }
+
+            return score;
+        }
+
     }
 }

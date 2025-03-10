@@ -24,10 +24,10 @@ namespace ChessUI
         public void FindBestMoveInBackground()
         {
             Thread thread = new Thread(() => {
-                Move? bestMove = search.FindBestMove(6);
+                Move? bestMove = search.FindBestMove(5);
 
                 if (bestMove.HasValue) {
-                    this.Dispatcher.Invoke(() => {
+                    Dispatcher.Invoke(() => {
                         board.MakeMove(bestMove.Value);
                         RefreshBoard();
                     });
@@ -41,7 +41,9 @@ namespace ChessUI
         {
             // if else ... modes
             // do color check: player cant choose enemy pieces when playing with computer (selecting during search)
-            //FindBestMoveInBackground();
+
+            if (!AiEnabled) return;
+            FindBestMoveInBackground();
         }
 
         private void SelectSquare(int row, int col)

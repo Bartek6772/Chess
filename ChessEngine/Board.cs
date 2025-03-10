@@ -42,8 +42,7 @@ namespace ChessEngine
         {
             history = new Stack<GameState>();
             moveGeneration = new MoveGeneration(this);
-            //LoadPositionFromFEN(startFEN);
-            LoadPositionFromFEN("r3k2r/p1pp1pb1/bn2pnp1/2qPN3/1p2P3/P1N2Q1p/1PPBBPPP/R3K2R w KQkq");
+            LoadPositionFromFEN(startFEN);
         }
 
         public struct GameState

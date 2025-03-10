@@ -41,7 +41,7 @@ namespace ChessUI
             search = new Search(board);
 
             DrawBoard();
-            UpdateEvaluationBar(0);
+            UpdateEvaluationBar();
         }
 
         private void InitializeBoard()
@@ -72,8 +72,9 @@ namespace ChessUI
             Chessboard.MouseLeftButtonUp += Chessboard_MouseLeftButtonUp;
         }
 
-        public void UpdateEvaluationBar(double eval)
+        public void UpdateEvaluationBar()
         {
+            double eval = (double)Evaluation.Evaluate(board);
             double normalized = Math.Clamp((eval + 1000) / 1000, 0.05f, 1.95f);
             double height = EvaluationBar.ActualHeight;
             double newWhiteHeight = normalized;
@@ -93,9 +94,7 @@ namespace ChessUI
             DrawBoard();
             ClearHighlights();
             DrawLastMove();
-
-            int eval = Evaluation.Evaluate(board);
-            UpdateEvaluationBar(eval);
+            UpdateEvaluationBar();
 
             moves = board.GenerateMoves();
 
@@ -177,6 +176,12 @@ namespace ChessUI
             ClearHighlights();
             DrawHighlights();
             DrawBoard();
+        }
+
+        bool AiEnabled = true;
+        private void SwitchAI_Click(object sender, RoutedEventArgs e)
+        {
+            AiEnabled = !AiEnabled;
         }
     }
 }
