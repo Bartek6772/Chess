@@ -13,13 +13,32 @@ namespace ChessUI
 {
     partial class ChessboardView
     {
-        private Image draggedPiece = null;  // Original chess piece
-        private Image dragOverlay = null;   // Floating piece
+        private Image draggedPiece = null;
+        private Image dragOverlay = null;
         private Point mouseOffset;
-        private Point mouseDownPosition;    // Tracks the click position
-        private bool isDragging = false;    // Flag to check if dragging is in progress
-        private const double DragThreshold = 5; // Minimum movement to start drag
+        private Point mouseDownPosition;
+        private bool isDragging = false;
+        private const double DragThreshold = 5;
         private int selectedSquare = -1;
+
+
+        int moveNumber = 1; // Remember to delete when undoing moves
+        private void MakeMove(Move move)
+        {
+            if(board.colorToMove == 1) {
+                MoveHistory[MoveHistory.Count - 1].MoveBlack = board.GetMoveLongName(move);
+            }
+            else {
+                HistoryObject ho = new HistoryObject();
+                ho.MoveWhite = board.GetMoveLongName(move);
+                ho.MoveNumber = moveNumber;
+                moveNumber++;
+
+                MoveHistory.Add(ho);
+            }
+
+            board.MakeMove(move);
+        }
 
         public void FindBestMoveInBackground()
         {
@@ -28,7 +47,7 @@ namespace ChessUI
 
                 if (bestMove.HasValue) {
                     Dispatcher.Invoke(() => {
-                        board.MakeMove(bestMove.Value);
+                        MakeMove(bestMove.Value);
                         RefreshBoard();
                     });
                 }
@@ -42,7 +61,7 @@ namespace ChessUI
             // if else ... modes
             // do color check: player cant choose enemy pieces when playing with computer (selecting during search)
 
-            if (!AiEnabled) return;
+            if (!AppSettings.AIEnabled) return;
             FindBestMoveInBackground();
         }
 
@@ -66,7 +85,7 @@ namespace ChessUI
 
                         }
 
-                        board.MakeMove(moves[i]);
+                        MakeMove(moves[i]);
                         selectedSquare = -1;
                         RefreshBoard();
 

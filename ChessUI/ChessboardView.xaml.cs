@@ -1,6 +1,8 @@
 ﻿using ChessEngine;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
@@ -26,10 +28,8 @@ namespace ChessUI
 
         SolidColorBrush whiteColor = new SolidColorBrush(Color.FromRgb(121, 72, 57));
         SolidColorBrush blackColor = new SolidColorBrush(Color.FromRgb(93, 50, 49));
-        //SolidColorBrush highlightColor = new SolidColorBrush(Color.FromArgb(100, 48, 105, 219));
         SolidColorBrush highlightColor = new SolidColorBrush(Color.FromArgb(100, 219, 65, 48));
         SolidColorBrush lastMoveColor = new SolidColorBrush(Color.FromArgb(100, 245, 190, 39));
-
 
         public ChessboardView()
         {
@@ -42,6 +42,10 @@ namespace ChessUI
 
             DrawBoard();
             UpdateEvaluationBar();
+
+            MoveHistory = new ObservableCollection<HistoryObject>();
+            MoveHistory.CollectionChanged += ListView_ScrollToBottom;
+            DataContext = this;
         }
 
         private void InitializeBoard()
@@ -176,12 +180,6 @@ namespace ChessUI
             ClearHighlights();
             DrawHighlights();
             DrawBoard();
-        }
-
-        bool AiEnabled = true;
-        private void SwitchAI_Click(object sender, RoutedEventArgs e)
-        {
-            AiEnabled = !AiEnabled;
         }
     }
 }

@@ -96,4 +96,12 @@ public partial class MainWindow : Window
     {
         Application.Current.MainWindow.WindowState = WindowState.Minimized;
     }
+
+    private void Window_KeyDown(object sender, KeyEventArgs e)
+    {
+        if(e.Key == Key.F2) {
+            DebugWindow secondWindow = new DebugWindow();
+            secondWindow.Show();
+        }
+    }
 }

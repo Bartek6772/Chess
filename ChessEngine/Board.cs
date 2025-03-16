@@ -299,6 +299,46 @@ namespace ChessEngine
             return history.Peek().move;
         }
 
+        public string GetMoveLongName(Move move)
+        {
+            if (move.IsPromotion()) {
+                string p2 = move.MoveFlag switch {
+                    Move.Flags.PromotionBishop => "B",
+                    Move.Flags.PromotionKnight => "N",
+                    Move.Flags.PromotionRook => "R",
+                    Move.Flags.PromotionQueen => "Q",
+                    _ => "",
+                };
+                return SquareToString(move.StartSquare) + "-" + SquareToString(move.TargetSquare) + "=" + p2;
+            }
+
+            if(move.MoveFlag == Move.Flags.CastlingKingSide) {
+                return "O-O";
+            }
+
+            if (move.MoveFlag == Move.Flags.CastlingQueenSide) {
+                return "O-O-O";
+            }
+
+            string p = Piece.PieceType(this[move.StartSquare]) switch {
+                Piece.Bishop => "B",
+                Piece.Knight => "N",
+                Piece.Rook => "R",
+                Piece.Queen => "Q",
+                Piece.King => "K",
+                _ => "",
+            };
+
+            return p + SquareToString(move.StartSquare) + "-" + SquareToString(move.TargetSquare);
+        }
+
+        public string SquareToString(int square)
+        {
+            int x = square % 8;
+            int y = square / 8;
+            return (char)('a' + x) + (y + 1).ToString();
+        }
+
         private void InitializePieceList()
         {
             // TODO: Handle situation when user load position with more than max amount of pieces

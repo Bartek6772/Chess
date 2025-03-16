@@ -5,42 +5,78 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:ChessUI"
              mc:Ignorable="d" 
-             d:DesignHeight="630" d:DesignWidth="612">
+             d:DesignHeight="700" d:DesignWidth="1012">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="512"/>
+            <RowDefinition Height="100"/>
+            <RowDefinition Height="500"/>
             <RowDefinition Height="100"/>
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="50"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="50"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
-            <StackPanel Grid.Column="0" Name="EvaluationBar" Background="Black">
-                <Rectangle Name="WhiteAdvantage" Fill="White" Height="256">
-                    <Rectangle.RenderTransform>
-                        <ScaleTransform ScaleY="1" CenterY="1"/>
-                    </Rectangle.RenderTransform>
-                </Rectangle>
-            </StackPanel>
+        <StackPanel Grid.Column="0" Grid.Row="1" Name="EvaluationBar" Background="Black">
+            <Rectangle Name="WhiteAdvantage" Fill="White" Height="250">
+                <Rectangle.RenderTransform>
+                    <ScaleTransform ScaleY="1" CenterY="1"/>
+                </Rectangle.RenderTransform>
+            </Rectangle>
+        </StackPanel>
 
-            <Viewbox Grid.Column="1">
-                <Grid Width="512" Height="512" Name="Chessboard">
-                    <UniformGrid Name="Background" Rows="8" Columns="8"/>
-                    <UniformGrid Name="HighlightGrid" Rows="8" Columns="8"/>
-                    <UniformGrid Name="ChessPieces" Rows="8" Columns="8" RenderOptions.BitmapScalingMode="HighQuality"/>
-                    <Canvas Name="DragLayer" IsHitTestVisible="False"/>
-                </Grid>
-            </Viewbox>
-        </Grid>
+        <Viewbox Grid.Column="1" Grid.Row="1">
+            <Grid Width="512" Height="512" Name="Chessboard">
+                <UniformGrid Name="Background" Rows="8" Columns="8"/>
+                <UniformGrid Name="HighlightGrid" Rows="8" Columns="8"/>
+                <UniformGrid Name="ChessPieces" Rows="8" Columns="8" RenderOptions.BitmapScalingMode="HighQuality"/>
+                <Canvas Name="DragLayer" IsHitTestVisible="False"/>
+            </Grid>
+        </Viewbox>
 
+        <ListView Grid.Row="1" Grid.Column="2"
+                  Background="#121317" Foreground="White" Margin="30" BorderThickness="0"
+                  ItemsSource="{Binding MoveHistory}"
+                  Name="HistoryListView">
 
-        <WrapPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+
+                        <StackPanel.Resources>
+                            <Style TargetType="Label">
+                                <Setter Property="Foreground" Value="#fff"/>
+                                <Setter Property="FontSize" Value="18"/>
+                            </Style>
+                        </StackPanel.Resources>
+                        
+                        <Label Content="{Binding MoveNumber}" Width="70"/>
+                        <Label Content="{Binding MoveWhite}" Width="150"/>
+                        <Label Content="{Binding MoveBlack}"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+            
+        </ListView>
+        
+
+        <StackPanel Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right">
+            <Border Width="100" Padding="10" Background="WhiteSmoke" CornerRadius="4">
+                <Label Content="5:00" HorizontalAlignment="Center" FontSize="20" FontWeight="Bold"/>
+            </Border>
+        </StackPanel>
+
+        <StackPanel Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right">
+            <Border Width="100" Padding="10" Background="Gray" CornerRadius="4">
+                <Label Content="5:00" HorizontalAlignment="Center" FontSize="20" FontWeight="Bold"/>
+            </Border>
+        </StackPanel>
+
+        <WrapPanel Grid.Row="2" Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center">
             <Button Content="Undo" Width="200" Height="50" Click="UndoButton_Click" Margin="10"/>
             <Button Content="Rotate" Width="200" Height="50" Click="RotateButton_Click" Margin="10"/>
-            <Button Content="Switch AI" Width="200" Height="50" Click="SwitchAI_Click" Margin="10"/>
         </WrapPanel>
     </Grid>
 </UserControl>
