@@ -37,13 +37,14 @@ namespace ChessUI
                 MoveHistory.Add(ho);
             }
 
+            turn = 1 - turn;
             board.MakeMove(move);
         }
 
         public void FindBestMoveInBackground()
         {
             Thread thread = new Thread(() => {
-                Move? bestMove = search.FindBestMove(5);
+                Move? bestMove = search.FindBestMove(6, 4500);
 
                 if (bestMove.HasValue) {
                     Dispatcher.Invoke(() => {

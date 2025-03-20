@@ -9,13 +9,14 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace ChessUI
 {
     /// <summary>
     /// Logika interakcji dla klasy ChessboardView.xaml
     /// </summary>
-    public partial class ChessboardView : UserControl
+    public partial class ChessboardView : UserControl, INotifyPropertyChanged
     {
         private readonly Image[,] images = new Image[8, 8];
         private readonly Rectangle[,] highlights = new Rectangle[8, 8];
@@ -35,6 +36,7 @@ namespace ChessUI
         {
             InitializeComponent();
             InitializeBoard();
+            InitializeTimers();
 
             board = new Board();
             moves = board.GenerateMoves();
@@ -48,6 +50,7 @@ namespace ChessUI
             DataContext = this;
         }
 
+        #region Rendering Board
         private void InitializeBoard()
         {
             for (int row = 0; row < 8; row++) {
@@ -102,11 +105,15 @@ namespace ChessUI
 
             moves = board.GenerateMoves();
 
-            if (moves.Count == 0) {
-                MessageBox.Show("Checkmate or stalemate");
+            if (board.IsCheckmate()) {
+                MessageBox.Show("Checkmate");
+                timer.Stop();
+            }
+            else if (board.IsStalemate()) {
+                MessageBox.Show("Stalemate");
+                timer.Stop();
             }
         }
-
 
         private void DrawBoard()
         {
@@ -115,14 +122,6 @@ namespace ChessUI
                     images[col, row].Source = Images.sources[board[GridToBoard(row, col)]];
                 }
             }
-        }
-
-        private int GridToBoard(int row, int col)
-        {
-            if (rotated) {
-                return row * 8 + (7 - col);
-            }
-            return (7 - row) * 8 + col;
         }
 
         private void ClearHighlights()
@@ -168,6 +167,16 @@ namespace ChessUI
             }
         }
 
+        private int GridToBoard(int row, int col)
+        {
+            if (rotated) {
+                return row * 8 + (7 - col);
+            }
+            return (7 - row) * 8 + col;
+        }
+        #endregion
+
+        #region Buttons
         private void UndoButton_Click(object sender, RoutedEventArgs e)
         {
             board.UnmakeMove();
@@ -180,6 +189,52 @@ namespace ChessUI
             ClearHighlights();
             DrawHighlights();
             DrawBoard();
+        }
+        #endregion
+
+
+        private int gameLengthSeconds = 5 * 60;
+
+        private int timerWhite;
+        private int timerBlack;
+
+        private int turn = 0;
+        DispatcherTimer timer;
+
+        private void InitializeTimers()
+        {
+            timer = new DispatcherTimer();
+            timer.Interval = TimeSpan.FromSeconds(1);
+            timer.Tick += Timer_Tick;
+            timer.Start();
+
+            timerWhite = gameLengthSeconds;
+            timerBlack = gameLengthSeconds;
+        }
+
+        private void Timer_Tick(object sender, EventArgs e)
+        {
+            if(turn == 0) {
+                timerWhite--;
+            }
+            else {
+                timerBlack--;
+            }
+
+            WhiteTimer.Content = GetTimerString(timerWhite);
+            BlackTimer.Content = GetTimerString(timerBlack);
+        }
+
+        public string GetTimerString(int timer)
+        {
+
+            return (timer / 60).ToString() + ":" + (timer % 60 < 10 ? "0" : "") + (timer % 60).ToString();
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

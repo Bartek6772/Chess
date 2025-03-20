@@ -362,5 +362,25 @@ namespace ChessEngine
                 pieceList[this[i]].AddPiece(i);
             }
         }
+
+        public bool IsInCheck()
+        {
+            int pos = KingPosition(colorToMove);
+            return moveGeneration.IsSquareAttacked(pos, (1 - colorToMove) * Piece.Black);
+        }
+        public bool IsCheckmate()
+        {
+            return IsInCheck() && moveGeneration.GenerateMoves().Count == 0;
+        }
+
+        public bool IsStalemate()
+        {
+            return !IsInCheck() && moveGeneration.GenerateMoves().Count == 0;
+        }
+
+        public int KingPosition(int colorIndex)
+        {
+            return pieceList[Piece.King | Piece.Black * colorIndex][0];
+        }
     }
 }

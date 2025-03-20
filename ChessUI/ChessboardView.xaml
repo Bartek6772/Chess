@@ -64,13 +64,13 @@
 
         <StackPanel Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right">
             <Border Width="100" Padding="10" Background="WhiteSmoke" CornerRadius="4">
-                <Label Content="5:00" HorizontalAlignment="Center" FontSize="20" FontWeight="Bold"/>
+                <Label Name="BlackTimer" Content="5:00" HorizontalAlignment="Center" FontSize="20" FontWeight="Bold"/>
             </Border>
         </StackPanel>
 
         <StackPanel Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right">
             <Border Width="100" Padding="10" Background="Gray" CornerRadius="4">
-                <Label Content="5:00" HorizontalAlignment="Center" FontSize="20" FontWeight="Bold"/>
+                <Label Name="WhiteTimer" Content="5:00" HorizontalAlignment="Center" FontSize="20" FontWeight="Bold"/>
             </Border>
         </StackPanel>
 

@@ -11,100 +11,102 @@ namespace ChessEngine
     {
         Board board;
 
+        const int MinValue = -100000;
+        const int MaxValue = 100000;
+
         public Search(Board board)
         {
             this.board = board;
         }
 
-        public async Task<Move?> FindBestMoveAsync(int depth)
+        public async Task<Move?> FindBestMoveAsync(int depth, int timeLimit)
         {
-            return await Task.Run(() => FindBestMove(depth));
+            return await Task.Run(() => FindBestMove(depth, timeLimit));
         }
 
-        public Move? FindBestMove(int depth)
+        public Move? FindBestMove(int depth, int timeLimit)
         {
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            int bestMoveValue = int.MaxValue;
+            Move? bestMove = null;
+            Move? lastBestMove = null;
 
-            List<Move> moves = board.GenerateMoves();
-            moves = moves.OrderByDescending(move => MoveHeuristic(move)).ToList();
+            int bestAlpha = MinValue;
+            int bestBeta = MaxValue;
+            int bestMoveValue;
 
-            if (moves.Count == 0) {
-                return null;
-            }
+            for (int currentDepth = 0; currentDepth <= depth; currentDepth++) {
 
-            Move bestMove = moves[0];
+                bestMoveValue = int.MaxValue;
 
-            bool maximizing = (board.colorToMove == Board.WhiteIndex);
+                List<Move> moves = board.GenerateMoves();
+                //moves = moves.OrderByDescending(move => MoveHeuristic(move)).ToList();
 
-            foreach (var move in moves) {
-
-                board.MakeMove(move);
-                int moveValue = Minimax(depth - 1, int.MinValue, int.MaxValue, true);
-                board.UnmakeMove();
-
-                if (moveValue < bestMoveValue) {
-                    bestMoveValue = moveValue;
-                    bestMove = move;
+                if (moves.Count == 0) {
+                    return null;
                 }
+
+                foreach (var move in moves) {
+                    board.MakeMove(move);
+                    int moveValue = Minimax(depth - 1, bestAlpha, bestBeta);
+                    board.UnmakeMove();
+
+                    if (moveValue < bestMoveValue) {
+                        bestMoveValue = moveValue;
+                        bestMove = move;
+                    }
+
+                    bestAlpha = int.Min(bestAlpha, moveValue);
+                    bestBeta = int.Max(bestBeta, moveValue);
+
+                    //if (stopwatch.ElapsedMilliseconds > timeLimit) {
+                    //    stopwatch.Stop();
+                    //    Debug.WriteLine("Search time: " + stopwatch.ElapsedMilliseconds);
+                    //    return lastBestMove;
+                    //}
+                }
+
+                lastBestMove = bestMove;
             }
 
             stopwatch.Stop();
             Debug.WriteLine("Search time: " + stopwatch.ElapsedMilliseconds);
-
-            if(bestMove.StartSquare == -1) {
-                return null;
-            }
-
-            return bestMove;
+            return lastBestMove;
         }
 
-        public int Minimax(int depth, int alpha, int beta, bool maximizing)
+        public int Minimax(int depth, int alpha, int beta)
         {
-            if (depth == 0 || IsTerminal(board)) {
-                return Evaluation.Evaluate(board);
+            if (depth == 0) {
+                return Evaluation.Evaluate(board) * (board.colorToMove == Board.WhiteIndex ? 1 : -1);
             }
 
             List<Move> moves = board.GenerateMoves();
 
-            if (maximizing) {
-                int maxVal = int.MinValue;
-
-                foreach (Move move in moves) {
-                    board.MakeMove(move);
-                    int evaluation = Minimax(depth - 1, alpha, beta, false);
-                    maxVal = int.Max(evaluation, maxVal);
-                    board.UnmakeMove();
-
-                    alpha = int.Max(alpha, evaluation);
-                    if (beta <= alpha) break;
+            if (moves.Count == 0) {
+                if (board.IsInCheck()) {
+                    return MinValue;
                 }
-
-                return maxVal;
+                return 0;
             }
-            else {
-                int minVal = int.MaxValue;
 
-                foreach (Move move in moves) {
-                    board.MakeMove(move);
-                    int evaluation = Minimax(depth - 1, alpha, beta, true);
-                    minVal = int.Min(evaluation, minVal);
-                    board.UnmakeMove();
+            int maxVal = int.MinValue;
 
-                    beta = int.Min(beta, evaluation);
-                    if (beta <= alpha) break;
+            foreach (Move move in moves) {
+                board.MakeMove(move);
+
+                int evaluation = -Minimax(depth - 1, -beta, -alpha);
+
+                maxVal = int.Max(evaluation, maxVal);
+                board.UnmakeMove();
+
+                if(evaluation >= beta) {
+                    return beta;
                 }
-
-                return minVal;
+                alpha = int.Max(alpha, evaluation);
             }
-        }
 
-        private bool IsTerminal(Board board)
-        {
-            //return board.IsCheckmate() || board.IsStalemate() || board.IsDraw();
-            return false;
+            return alpha;
         }
 
         public int MoveHeuristic(Move move)
