@@ -59,6 +59,50 @@ namespace ChessEngine
             return legalMoves;
         }
 
+        public bool CanMoveToFrom(int start, int target, out Move.Flags flag)
+        {
+            moves = new List<Move>();
+            int piece = board[start];
+            int color = board.colorToMove * Piece.Black;
+
+            if(Piece.PieceType(piece) == Piece.Queen) {
+                GenerateSlidingMoves(start, color, 0, 8);
+            }
+            else if (Piece.PieceType(piece) == Piece.Rook) {
+                GenerateSlidingMoves(start, color, 0, 4);
+            }
+            else if (Piece.PieceType(piece) == Piece.Bishop) {
+                GenerateSlidingMoves(start, color, 4, 8);
+            }
+            else if (Piece.PieceType(piece) == Piece.Knight) {
+                GenerateKnightMoves(start, color);
+            }
+            else if (Piece.PieceType(piece) == Piece.Pawn) {
+                GeneratePawnMoves(start, color);
+            }
+
+
+            foreach (var move in moves) {
+                if(move.TargetSquare == target) {
+
+                    bool legal = false;
+
+                    board.MakeMove(move);
+
+                    int frienldyKingSquare = board.pieceList[Piece.King | color][0];
+                    legal = !IsSquareAttacked(frienldyKingSquare, Piece.OppositeColor(color));
+                    board.UnmakeMove();
+
+                    if (legal) {
+                        flag = move.MoveFlag;
+                        return true;
+                    }
+                }
+            }
+            flag = Move.Flags.None;
+            return false;
+        }
+
         // try passing freindly color instead
         public bool IsSquareAttacked(int attackSquare, int attackerColour)
         {

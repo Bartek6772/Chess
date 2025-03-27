@@ -75,8 +75,9 @@
         </StackPanel>
 
         <WrapPanel Grid.Row="2" Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center">
-            <Button Content="Undo" Width="200" Height="50" Click="UndoButton_Click" Margin="10"/>
-            <Button Content="Rotate" Width="200" Height="50" Click="RotateButton_Click" Margin="10"/>
+            <Button Content="Undo" Width="120" Height="50" Click="UndoButton_Click" Margin="10"/>
+            <Button Content="Rotate" Width="120" Height="50" Click="RotateButton_Click" Margin="10"/>
+            <Button Content="Exit" Width="120" Height="50" Click="ExitButton_Click" Margin="10"/>
         </WrapPanel>
     </Grid>
 </UserControl>

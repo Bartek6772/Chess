@@ -1,0 +1,27 @@
+﻿<UserControl x:Class="ChessUI.ModeSelectView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:ChessUI"
+             mc:Ignorable="d" 
+             d:DesignHeight="700" d:DesignWidth="1012">
+
+    <UserControl.Resources>
+        <Style TargetType="Button">
+            <Style.Setters>
+                <Setter Property="Width" Value="260"/>
+                <Setter Property="Height" Value="90"/>
+                <Setter Property="FontSize" Value="18"/>
+                <Setter Property="Margin" Value="10"/>
+            </Style.Setters>
+        </Style>
+    </UserControl.Resources>
+    <Grid>
+        <WrapPanel Width="1012" Height="700">
+            <Button Content="Gracz kontra gracz" Click="Button_PP_Click"/>
+            <Button Content="Gracz kontra Minimax" Click="Button_PM_Click"/>
+            <Button Content="Gracz kontra Minimax (hard)" />
+        </WrapPanel>
+    </Grid>
+</UserControl>

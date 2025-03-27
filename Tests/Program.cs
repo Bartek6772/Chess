@@ -12,33 +12,44 @@ Board board = new Board();
 //Perft.RunDebug(board, 2);
 
 
-Console.WriteLine("Running Standard Tests: ");
-board.LoadPositionFromFEN(Board.startFEN);
-for (int i = 1; i <= 5; i++) {
-    Perft.Run(board, i, correctAnswers[i]);
-}
+//Console.WriteLine("Running Standard Tests: ");
+//board.LoadPositionFromFEN(Board.startFEN);
+//for (int i = 1; i <= 5; i++) {
+//    Perft.Run(board, i, correctAnswers[i]);
+//}
 
 
-Console.WriteLine("\nRunning Position 2 Tests: ");
-board.LoadPositionFromFEN("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R");
-for (int i = 1; i <= 4; i++) {
-    Perft.Run(board, i, correctAnswers2[i]);
-}
+//Console.WriteLine("\nRunning Position 2 Tests: ");
+//board.LoadPositionFromFEN("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R");
+//for (int i = 1; i <= 4; i++) {
+//    Perft.Run(board, i, correctAnswers2[i]);
+//}
 
-Console.WriteLine("\nRunning Position 3 Tests: ");
-board.LoadPositionFromFEN("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - ");
-for (int i = 1; i <= 5; i++) {
-    Perft.Run(board, i, correctAnswers3[i]);
-}
+//Console.WriteLine("\nRunning Position 3 Tests: ");
+//board.LoadPositionFromFEN("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - ");
+//for (int i = 1; i <= 5; i++) {
+//    Perft.Run(board, i, correctAnswers3[i]);
+//}
 
-Console.WriteLine("\nRunning Position 4 Tests: ");
-board.LoadPositionFromFEN("r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq");
-for (int i = 1; i <= 5; i++) {
-    Perft.Run(board, i, correctAnswers4[i]);
-}
+//Console.WriteLine("\nRunning Position 4 Tests: ");
+//board.LoadPositionFromFEN("r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq");
+//for (int i = 1; i <= 5; i++) {
+//    Perft.Run(board, i, correctAnswers4[i]);
+//}
 
-Console.WriteLine("\nRunning Position 5 Tests: ");
-board.LoadPositionFromFEN("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ");
-for (int i = 1; i <= 5; i++) {
-    Perft.Run(board, i, correctAnswers5[i]);
-}
+//Console.WriteLine("\nRunning Position 5 Tests: ");
+//board.LoadPositionFromFEN("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ");
+//for (int i = 1; i <= 5; i++) {
+//    Perft.Run(board, i, correctAnswers5[i]);
+//}
+
+//PGNReader reader = new PGNReader();
+//var list = reader.LoadPGN("Database/master_games.pgn");
+//foreach (var item in list) {
+//    Console.WriteLine(item.ToString());
+//}
+
+//Console.WriteLine(PGNReader.AnalyzedPositions());
+
+Console.WriteLine(PGNReader.AnalyzedGames());
+

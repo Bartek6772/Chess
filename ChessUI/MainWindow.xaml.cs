@@ -18,7 +18,19 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        
+        MainContent.Content = new ModeSelectView();
+    }
+
+    public void SwitchToGame(GameMode mode)
+    {
+        ChessboardView chessboardView = new();
+        chessboardView.SetMode(mode);
+        MainContent.Content = chessboardView;
+    }
+
+    public void SwitchToModeSelect()
+    {
+        MainContent.Content = new ModeSelectView();
     }
 
     //private void AnimatePieceMovement(Image piece, int newRow, int newColumn)

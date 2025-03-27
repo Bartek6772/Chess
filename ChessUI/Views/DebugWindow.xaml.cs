@@ -22,7 +22,7 @@ namespace ChessUI
         public DebugWindow()
         {
             InitializeComponent();
-            DataContext = new AppSettingsWrapper();
+            DataContext = AppSettings.Instance;
         }
 
         private void Border_MouseDown(object sender, MouseButtonEventArgs e)

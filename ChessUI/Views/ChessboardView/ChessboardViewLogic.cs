@@ -21,6 +21,7 @@ namespace ChessUI
         private const double DragThreshold = 5;
         private int selectedSquare = -1;
 
+        private bool EnableSelecting = true;
 
         int moveNumber = 1; // Remember to delete when undoing moves
         private void MakeMove(Move move)
@@ -44,15 +45,27 @@ namespace ChessUI
         public void FindBestMoveInBackground()
         {
             Thread thread = new Thread(() => {
-                Move? bestMove = search.FindBestMove(6, 4500);
+                Search.Result result = search.FindBestMove(AppSettings.Instance.SearchDepth, AppSettings.Instance.SearchTimeLimit);
 
-                if (bestMove.HasValue) {
+                if (result.move.HasValue) {
                     Dispatcher.Invoke(() => {
-                        MakeMove(bestMove.Value);
+                        AppSettings.Instance.logs.Add($"Search at depth {result.depth} time {result.time}");
+                        MakeMove(result.move.Value);
                         RefreshBoard();
+                        EnableSelecting = true;
+
+                        Move? bookMove = board.GetBookMove();
+                        if (bookMove.HasValue) {
+                            Debug.WriteLine(bookMove.Value.ToString());
+                            AppSettings.Instance.BookMove = "Book move is " + bookMove.Value.ToString();
+                        }
+                        else {
+                            AppSettings.Instance.BookMove = "No book move";
+                        }
                     });
                 }
             });
+            EnableSelecting = false;
             thread.IsBackground = true;
             thread.Start();
         }
@@ -62,12 +75,15 @@ namespace ChessUI
             // if else ... modes
             // do color check: player cant choose enemy pieces when playing with computer (selecting during search)
 
-            if (!AppSettings.AIEnabled) return;
+            if (!AppSettings.Instance.AIEnabled) return;
+
             FindBestMoveInBackground();
         }
 
         private void SelectSquare(int row, int col)
         {
+            if (!EnableSelecting) return;
+
             if (selectedSquare != -1) {
 
                 for (int i = 0; i < moves.Count; i++) {
@@ -106,7 +122,6 @@ namespace ChessUI
             mouseDownPosition = e.GetPosition(Chessboard);
             int row = (int)(mouseDownPosition.Y / 64);
             int col = (int)(mouseDownPosition.X / 64);
-            Debug.WriteLine("Mouse button down");
             SelectSquare(row, col);
 
             draggedPiece = images[col, row];

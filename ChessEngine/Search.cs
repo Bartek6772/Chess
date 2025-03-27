@@ -14,29 +14,46 @@ namespace ChessEngine
         const int MinValue = -100000;
         const int MaxValue = 100000;
 
+        Stopwatch stopwatch;
+
+        private bool breaker = false;
+        private int limit;
+
         public Search(Board board)
         {
             this.board = board;
+            stopwatch = new Stopwatch();
         }
 
-        public async Task<Move?> FindBestMoveAsync(int depth, int timeLimit)
+        public async Task<Result> FindBestMoveAsync(int depth, int timeLimit)
         {
             return await Task.Run(() => FindBestMove(depth, timeLimit));
         }
 
-        public Move? FindBestMove(int depth, int timeLimit)
+        public Result FindBestMove(int depth, int timeLimit)
         {
-            Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
+            breaker = false;
+
+            limit = timeLimit;
 
             Move? bestMove = null;
-            Move? lastBestMove = null;
 
             int bestAlpha = MinValue;
             int bestBeta = MaxValue;
             int bestMoveValue;
 
-            for (int currentDepth = 0; currentDepth <= depth; currentDepth++) {
+            Result result = new();
+
+            Move? bookMove = board.GetBookMove();
+            if (bookMove.HasValue) {
+                result.move = bookMove.Value;
+                result.time = stopwatch.ElapsedMilliseconds;
+                stopwatch.Reset();
+                return result;
+            }
+
+            for (int currentDepth = 1; currentDepth <= depth; currentDepth++) {
 
                 bestMoveValue = int.MaxValue;
 
@@ -44,13 +61,19 @@ namespace ChessEngine
                 //moves = moves.OrderByDescending(move => MoveHeuristic(move)).ToList();
 
                 if (moves.Count == 0) {
-                    return null;
+                    return result;
                 }
 
                 foreach (var move in moves) {
                     board.MakeMove(move);
-                    int moveValue = Minimax(depth - 1, bestAlpha, bestBeta);
+                    int moveValue = Minimax(currentDepth - 1, bestAlpha, bestBeta);
                     board.UnmakeMove();
+
+                    if (breaker) {
+                        result.time = stopwatch.ElapsedMilliseconds;
+                        stopwatch.Reset();
+                        return result;
+                    }
 
                     if (moveValue < bestMoveValue) {
                         bestMoveValue = moveValue;
@@ -59,26 +82,30 @@ namespace ChessEngine
 
                     bestAlpha = int.Min(bestAlpha, moveValue);
                     bestBeta = int.Max(bestBeta, moveValue);
-
-                    //if (stopwatch.ElapsedMilliseconds > timeLimit) {
-                    //    stopwatch.Stop();
-                    //    Debug.WriteLine("Search time: " + stopwatch.ElapsedMilliseconds);
-                    //    return lastBestMove;
-                    //}
                 }
 
-                lastBestMove = bestMove;
+                Debug.WriteLine($"Search at depth {currentDepth} time: {stopwatch.ElapsedMilliseconds} ms");
+                result.depth = currentDepth;
+                result.move = bestMove;
             }
 
-            stopwatch.Stop();
-            Debug.WriteLine("Search time: " + stopwatch.ElapsedMilliseconds);
-            return lastBestMove;
+            result.time = stopwatch.ElapsedMilliseconds;
+            stopwatch.Reset();
+            return result;
         }
 
         public int Minimax(int depth, int alpha, int beta)
         {
             if (depth == 0) {
                 return Evaluation.Evaluate(board) * (board.colorToMove == Board.WhiteIndex ? 1 : -1);
+            }
+
+            if(stopwatch.ElapsedMilliseconds > limit && !breaker) {
+                breaker = true;
+            }
+
+            if (breaker) {
+                return 0;
             }
 
             List<Move> moves = board.GenerateMoves();
@@ -125,6 +152,13 @@ namespace ChessEngine
             }
 
             return score;
+        }
+
+        public struct Result
+        {
+            public Move? move;
+            public long time;
+            public int depth;
         }
 
     }

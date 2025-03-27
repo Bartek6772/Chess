@@ -39,8 +39,8 @@ namespace ChessUI
             InitializeTimers();
 
             board = new Board();
-            moves = board.GenerateMoves();
             search = new Search(board);
+            moves = board.GenerateMoves();
 
             DrawBoard();
             UpdateEvaluationBar();
@@ -190,14 +190,18 @@ namespace ChessUI
             DrawHighlights();
             DrawBoard();
         }
+        private void ExitButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (Application.Current.MainWindow is MainWindow mainWindow) {
+                mainWindow.SwitchToModeSelect();
+            }
+        }
         #endregion
 
-
+        #region Timers
         private int gameLengthSeconds = 5 * 60;
-
         private int timerWhite;
         private int timerBlack;
-
         private int turn = 0;
         DispatcherTimer timer;
 
@@ -229,6 +233,18 @@ namespace ChessUI
         {
 
             return (timer / 60).ToString() + ":" + (timer % 60 < 10 ? "0" : "") + (timer % 60).ToString();
+        }
+        #endregion
+
+        
+        public void SetMode(GameMode mode)
+        {
+            if(mode == GameMode.TwoPlayers) {
+                AppSettings.Instance.AIEnabled = false;
+            }
+            else if(mode == GameMode.PlayerMinimax) {
+                AppSettings.Instance.AIEnabled = true;
+            }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

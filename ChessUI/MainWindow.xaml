@@ -49,7 +49,7 @@
         </Border>
 
         <Viewbox Grid.Row="1">
-            <local:ChessboardView />
+            <ContentControl x:Name="MainContent"/>
         </Viewbox>
 
     </Grid>

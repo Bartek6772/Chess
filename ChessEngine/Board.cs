@@ -43,6 +43,7 @@ namespace ChessEngine
             history = new Stack<GameState>();
             moveGeneration = new MoveGeneration(this);
             LoadPositionFromFEN(startFEN);
+            //LoadPositionFromFEN("r2r2k1/pp3p1p/3P2p1/4p2n/4P2q/1Q2bP2/P3BPRP/3R3K w --");
         }
 
         public struct GameState
@@ -58,6 +59,8 @@ namespace ChessEngine
             Squares = new int[64];
             castlingRights = 0b1111;
             enpassantSquare = -1;
+            history.Clear();
+            colorToMove = 0;
 
             var pieceTypeFromSymbol = new Dictionary<char, int> {
                 ['k'] = Piece.King,
@@ -106,6 +109,66 @@ namespace ChessEngine
             }
 
             InitializePieceList();
+        }
+
+        public string GenerateFEN()
+        {
+            var pieceSymbolFromType = new Dictionary<int, char> {
+                [Piece.King] = 'k',
+                [Piece.Queen] = 'q',
+                [Piece.Pawn] = 'p',
+                [Piece.Rook] = 'r',
+                [Piece.Bishop] = 'b',
+                [Piece.Knight] = 'n',
+            };
+
+            string fen = "";
+
+            for (int y = 7; y >= 0; y--) {
+                int empty = 0;
+
+                for (int x = 0; x < 8; x++) {
+                    int pos = x + y * 8;
+                    if (this[pos] != Piece.None) {
+
+                        if(empty > 0) {
+                            fen += empty.ToString();
+                        }
+
+                        int type = Piece.PieceType(this[pos]);
+                        char symbol = pieceSymbolFromType[type];
+                        fen += Piece.IsColor(this[pos], Piece.White) ? symbol.ToString().ToUpper() : symbol;
+                    }
+                    else {
+                        empty++;
+                    }
+                }
+
+                if (empty > 0) {
+                    fen += empty.ToString();
+                }
+                fen += "/";
+            }
+
+            return fen;
+
+            //string[] f = fen.Split(' ');
+
+            //if (f.Length > 1) {
+            //    colorToMove = (f[1] == "w" ? 0 : 1);
+            //}
+
+            //if (f.Length > 2) {
+            //    castlingRights = 0b0000;
+            //    foreach (char c in f[2]) {
+            //        if (c == 'K') AddCastling(WK);
+            //        else if (c == 'Q') AddCastling(WQ);
+            //        else if (c == 'k') AddCastling(BK);
+            //        else if (c == 'q') AddCastling(BQ);
+            //    }
+            //}
+
+            //InitializePieceList();
         }
 
         public void MakeMove(Move move)
@@ -382,5 +445,7 @@ namespace ChessEngine
         {
             return pieceList[Piece.King | Piece.Black * colorIndex][0];
         }
+        public bool CanMoveToFrom(int start, int target, out Move.Flags flag) => moveGeneration.CanMoveToFrom(start, target, out flag);
+        public Move? GetBookMove() => PGNReader.GetBookMove(GenerateFEN(), colorToMove);
     }
 }
