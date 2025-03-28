@@ -9,7 +9,6 @@
         WindowStartupLocation="CenterScreen"
         Height="300" Width="300"
         WindowStyle="None"
-        ResizeMode="CanResizeWithGrip"
         AllowsTransparency="True">
 
     <Grid>

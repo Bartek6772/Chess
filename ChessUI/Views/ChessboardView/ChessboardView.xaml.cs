@@ -63,6 +63,8 @@ namespace ChessUI
             var result = dialogService.OpenDialog(dialog);
         }
 
+        public void Alert(string message) => Alert("Koniec gry", message);
+
         public Move.Flags Promotion()
         {
             var dialog = new PromotionDialogViewModel("Promotion", board.colorToMove == Board.WhiteIndex ? "white" : "black");
@@ -124,13 +126,15 @@ namespace ChessUI
 
             moves = board.GenerateMoves();
 
-            if (board.IsCheckmate()) {
-                Alert("Koniec gry", (board.colorToMove == Board.BlackIndex ? "Białe" : "Czarne") + " wygrywają - Mat");
+            if(state != GameState.InProgress) {
                 timer.Stop();
-            }
-            else if (board.IsStalemate()) {
-                Alert("Koniec gry", "Remis - Pat");
-                timer.Stop();
+
+                if(state == GameState.WhiteWon) Alert("Białe wygrywają - Mat");
+                else if(state == GameState.BlackWon) Alert("Czarne wygrywają - Mat");
+                else if(state == GameState.Stalemate) Alert("Remis - Pat");
+                else if(state == GameState.DrawRepetition) Alert("Remis przez powtórzenia");
+                else if(state == GameState.FiftyMovesRule) Alert("Remis - 50 ruchów bez postępu");
+                else if(state == GameState.InsufficientMaterial) Alert("Remis - brak przewagi materiału");
             }
         }
 
@@ -204,9 +208,14 @@ namespace ChessUI
                 }
 
                 MoveHistory.RemoveAt(MoveHistory.Count - 1);
+
+                positionHistory[board.GenerateFEN()]--;
                 board.UnmakeMove();
+                moveNumber--;
             }
 
+            state = GameState.InProgress;
+            positionHistory[board.GenerateFEN()]--;
             board.UnmakeMove();
             RefreshBoard();
         }

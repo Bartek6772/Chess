@@ -27,7 +27,7 @@ namespace ChessEngine
             return evaluation;
         }
 
-        private static int CountMaterial(Board board, int color)
+        public static int CountMaterial(Board board, int color)
         {
             int material = 0;
             material += board.pieceList[Piece.Pawn | color].Count * pawnValue;

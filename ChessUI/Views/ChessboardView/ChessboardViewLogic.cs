@@ -23,10 +23,32 @@ namespace ChessUI
 
         private bool EnableSelecting = true;
 
-        int moveNumber = 1; // Remember to delete when undoing moves
+        int moveNumber = 1;
+
+        int moveRule50 = 0;
+        private Dictionary<string, int> positionHistory = new Dictionary<string, int>();
+
+        public enum GameState
+        {
+            InProgress,
+            WhiteWon,
+            BlackWon,
+            Stalemate,
+            DrawRepetition,
+            FiftyMovesRule,
+            InsufficientMaterial
+        }
+
+        private GameState state = GameState.InProgress;
+
         private void MakeMove(Move move)
         {
-            if(board.colorToMove == 1) {
+            moveRule50++;
+            if (board[move.StartSquare] == Piece.Pawn || board[move.TargetSquare] != Piece.None) {
+                moveRule50 = 0;
+            }
+
+            if (board.colorToMove == 1) {
                 MoveHistory[MoveHistory.Count - 1].MoveBlack = board.GetMoveLongName(move);
             }
             else {
@@ -41,6 +63,71 @@ namespace ChessUI
 
             turn = 1 - turn;
             board.MakeMove(move);
+
+            #region Special Rules
+            if (moveRule50 > 50) {
+                state = GameState.FiftyMovesRule;
+            }
+            else if (board.IsCheckmate()) {
+                state = board.colorToMove == Board.BlackIndex ? GameState.WhiteWon : GameState.BlackWon;
+            }
+            else if (board.IsStalemate()) {
+                state = GameState.Stalemate;
+            }
+
+            string fen = board.GenerateFEN();
+            if (positionHistory.ContainsKey(fen)) {
+                positionHistory[fen]++;
+
+                if (positionHistory[fen] == 3) {
+                    state = GameState.DrawRepetition;
+                }
+            }
+            else {
+                positionHistory[fen] = 1;
+            }
+
+            if (board.pieceList[Piece.WhiteRook].Count + board.pieceList[Piece.BlackRook].Count == 0 &&
+                board.pieceList[Piece.WhiteQueen].Count + board.pieceList[Piece.BlackQueen].Count == 0) {
+
+                int b_knights = board.pieceList[Piece.BlackKnight].Count;
+                int b_bishops = board.pieceList[Piece.BlackBishop].Count;
+                int w_knights = board.pieceList[Piece.WhiteKnight].Count;
+                int w_bishops = board.pieceList[Piece.WhiteBishop].Count;
+
+                if (board.WhiteMaterial() == 0 && (b_knights + b_bishops) == 1 ) {
+                    state = GameState.InsufficientMaterial;
+                }
+                
+                if (board.BlackMaterial() == 0 && (w_bishops + w_knights) == 1) {
+                    state = GameState.InsufficientMaterial;
+                }
+
+                if (board.WhiteMaterial() == 0 && board.BlackMaterial() == 0) {
+                    state = GameState.InsufficientMaterial;
+                }
+
+                if (board.WhiteMaterial() == 0 && board.BlackMaterial() == 0) {
+                    state = GameState.InsufficientMaterial;
+                }
+
+                if((w_knights + b_knights) == 0 && b_bishops == 1 && w_bishops == 1) {
+                    bool s1 = IsWhiteSquare(board.pieceList[Piece.BlackBishop][0]);
+                    bool s2 = IsWhiteSquare(board.pieceList[Piece.WhiteBishop][0]);
+
+                    if(s1 == s2) {
+                        state = GameState.InsufficientMaterial;
+                    }
+                }
+            }
+
+            bool IsWhiteSquare(int square)
+            {
+                int row = square / 8;
+                int col = square % 8;
+                return (row + col) % 2 == 0;
+            }
+            #endregion
         }
 
         public void FindBestMoveInBackground()
@@ -79,7 +166,7 @@ namespace ChessUI
 
         private void SelectSquare(int row, int col)
         {
-            if (!EnableSelecting) return;
+            if (!EnableSelecting || state != GameState.InProgress) return;
 
             if (selectedSquare != -1) {
 
@@ -123,8 +210,13 @@ namespace ChessUI
             mouseDownPosition = e.GetPosition(Chessboard);
             int row = (int)(mouseDownPosition.Y / 64);
             int col = (int)(mouseDownPosition.X / 64);
-            SelectSquare(row, col);
 
+            if (row < 0 || row > 7 || col < 0 || col > 7) {
+                Debug.WriteLine("Col and row outside the board");
+                return;
+            }
+
+            SelectSquare(row, col);
             draggedPiece = images[col, row];
 
             if (draggedPiece != null) {
@@ -187,9 +279,6 @@ namespace ChessUI
                 Debug.WriteLine("Mouse button up");
                 SelectSquare(row, column);
             }
-            //else {
-            //    MessageBox.Show($"Clicked on ({column}, {row})");
-            //}
 
             draggedPiece = null;
             isDragging = false;

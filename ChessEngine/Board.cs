@@ -447,5 +447,7 @@ namespace ChessEngine
         }
         public bool CanMoveToFrom(int start, int target, out Move.Flags flag) => moveGeneration.CanMoveToFrom(start, target, out flag);
         public Move? GetBookMove() => PGNReader.GetBookMove(GenerateFEN(), colorToMove);
+        public int WhiteMaterial() => Evaluation.CountMaterial(this, Piece.White);
+        public int BlackMaterial() => Evaluation.CountMaterial(this, Piece.Black);
     }
 }
