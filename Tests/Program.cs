@@ -9,8 +9,20 @@ long[] correctAnswers4 = { 1, 6, 264, 9467, 422333, 15833292, 706045033 };
 long[] correctAnswers5 = { 1, 44, 1486, 62379, 2103487, 89941194 };
 
 Board board = new Board();
-//Perft.RunDebug(board, 2);
+Move move = new() { StartSquare = 1, TargetSquare = 18 };
 
+ulong hash = ZobristHashing.ComputeZobristHash(board);
+Console.WriteLine(hash);
+
+ZobristHashing.UpdateZobristHash(ref hash, move, board);
+Console.WriteLine(hash);
+
+ZobristHashing.UpdateZobristHash(ref hash, move, board);
+Console.WriteLine(hash);
+
+
+
+//Perft.RunDebug(board, 2);
 
 //Console.WriteLine("Running Standard Tests: ");
 //board.LoadPositionFromFEN(Board.startFEN);
@@ -51,5 +63,4 @@ Board board = new Board();
 
 //Console.WriteLine(PGNReader.AnalyzedPositions());
 
-Console.WriteLine(PGNReader.AnalyzedGames());
 

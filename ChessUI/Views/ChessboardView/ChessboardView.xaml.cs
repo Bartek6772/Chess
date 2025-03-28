@@ -55,6 +55,7 @@ namespace ChessUI
             DataContext = this;
 
             dialogService = new DialogService();
+            AppSettings.Instance.ZobristHash = board.GetZobristHash();
         }
 
         public void Alert(string title, string message)
@@ -102,7 +103,7 @@ namespace ChessUI
 
         public void UpdateEvaluationBar()
         {
-            double eval = (double)Evaluation.Evaluate(board);
+            double eval = (double)board.Evaluate();
             double normalized = Math.Clamp((eval + 1000) / 1000, 0.05f, 1.95f);
             double height = EvaluationBar.ActualHeight;
             double newWhiteHeight = normalized;
@@ -202,22 +203,40 @@ namespace ChessUI
         #region Buttons
         private void UndoButton_Click(object sender, RoutedEventArgs e)
         {
-            if(MoveHistory.Count > 0 && AppSettings.Instance.AIEnabled) {
-                if (MoveHistory[MoveHistory.Count - 1].MoveBlack == "") {
-                    return;
+            // TODO TEST THIS
+            if(MoveHistory.Count > 0) {
+
+                if (AppSettings.Instance.AIEnabled) {
+                    if (MoveHistory[MoveHistory.Count - 1].MoveBlack == "") {
+                        return;
+                    }
+
+                    MoveHistory.RemoveAt(MoveHistory.Count - 1);
+
+                    positionHistory[board.GenerateFEN()]--;
+                    board.UnmakeMove();
+                    moveNumber--;
                 }
+                else {
 
-                MoveHistory.RemoveAt(MoveHistory.Count - 1);
-
-                positionHistory[board.GenerateFEN()]--;
-                board.UnmakeMove();
-                moveNumber--;
+                    if (MoveHistory.Count > 0) {
+                        if (MoveHistory[MoveHistory.Count - 1].MoveBlack == "") {
+                            MoveHistory.RemoveAt(MoveHistory.Count - 1);
+                            moveNumber--;
+                        }
+                        else {
+                            MoveHistory[MoveHistory.Count - 1].MoveBlack = "";
+                        }
+                    }
+                }
             }
 
             state = GameState.InProgress;
             positionHistory[board.GenerateFEN()]--;
             board.UnmakeMove();
+
             RefreshBoard();
+            AppSettings.Instance.ZobristHash = board.GetZobristHash();
         }
 
         private void RotateButton_Click(object sender, RoutedEventArgs e)

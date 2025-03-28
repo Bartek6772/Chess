@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ChessEngine
 {
-    public static class Evaluation
+    static class Evaluation
     {
         const int pawnValue = 100;
         const int knightValue = 300;

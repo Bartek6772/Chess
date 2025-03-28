@@ -35,6 +35,7 @@ namespace ChessEngine
         public int enpassantSquare = -1;
 
         private MoveGeneration moveGeneration;
+        private ulong hash;
 
         public List<Move> GenerateMoves() => moveGeneration.GenerateMoves();
 
@@ -44,6 +45,8 @@ namespace ChessEngine
             moveGeneration = new MoveGeneration(this);
             LoadPositionFromFEN(startFEN);
             //LoadPositionFromFEN("r2r2k1/pp3p1p/3P2p1/4p2n/4P2q/1Q2bP2/P3BPRP/3R3K w --");
+
+            hash = ZobristHashing.ComputeZobristHash(this);
         }
 
         public struct GameState
@@ -173,20 +176,44 @@ namespace ChessEngine
 
         public void MakeMove(Move move)
         {
+            int piece = this[move.StartSquare];
+
+            #region Castling Rights
+            if (piece == Piece.WhiteKing) {
+                RemoveCastling(WK);
+                RemoveCastling(WQ);
+            }
+            else if (piece == Piece.BlackKing) {
+                RemoveCastling(BK);
+                RemoveCastling(BQ);
+            }
+
+            if (move.StartSquare == 0 || move.TargetSquare == 0) {
+                RemoveCastling(WQ);
+            }
+            else if (move.StartSquare == 7 || move.TargetSquare == 7) {
+                RemoveCastling(WK);
+            }
+            else if (move.StartSquare == 63 || move.TargetSquare == 63) {
+                RemoveCastling(BK);
+            }
+            else if (move.StartSquare == 56 || (move.TargetSquare == 56)) {
+                RemoveCastling(BQ);
+            }
+            #endregion
+
+            ZobristHashing.UpdateZobristHash(ref hash, move, this);
+
             GameState newGS = new() { move = move };
             newGS.capturedPiece = this[move.TargetSquare];
             newGS.castlingRights = castlingRights;
             newGS.enpassantSquare = enpassantSquare;
 
-            int piece = this[move.StartSquare];
-
             try {
                 pieceList[piece].MovePiece(move.StartSquare, move.TargetSquare);
             }
             catch (NullReferenceException e) {
-
                 Debug.WriteLine($"{piece} {move.ToString} {move.StartSquare} {move.TargetSquare}");
-                //throw;
             }
 
             if (newGS.capturedPiece != Piece.None) {
@@ -196,7 +223,7 @@ namespace ChessEngine
             this[move.TargetSquare] = piece;
             this[move.StartSquare] = Piece.None;
 
-            // Move Flags
+            #region Handling Move Flags
             if (move.MoveFlag == Move.Flags.CastlingKingSide) {
                 Castle(colorToMove * 2, 0);
             }
@@ -230,30 +257,7 @@ namespace ChessEngine
             else {
                 enpassantSquare = -1;
             }
-
-            // Castling rights
-            if (piece == Piece.WhiteKing) {
-                RemoveCastling(WK);
-                RemoveCastling(WQ);
-            }
-            else if (piece == Piece.BlackKing) {
-                RemoveCastling(BK);
-                RemoveCastling(BQ);
-            }
-
-            if (move.StartSquare == 0 || move.TargetSquare == 0) {
-                RemoveCastling(WQ);
-            }
-            else if (move.StartSquare == 7 || move.TargetSquare == 7) {
-                RemoveCastling(WK);
-            }
-            else if (move.StartSquare == 63 || move.TargetSquare == 63) {
-                RemoveCastling(BK);
-            }
-            else if (move.StartSquare == 56 || (move.TargetSquare == 56)) {
-                RemoveCastling(BQ);
-            }
-
+            #endregion
 
             colorToMove = 1 - colorToMove;
             history.Push(newGS);
@@ -301,6 +305,8 @@ namespace ChessEngine
 
             castlingRights = oldGS.castlingRights;
             enpassantSquare = oldGS.enpassantSquare;
+
+            ZobristHashing.UpdateZobristHash(ref hash, oldGS.move, this);
         }
 
         #region Promotion
@@ -356,6 +362,7 @@ namespace ChessEngine
         }
         #endregion
 
+        #region Short Methods
         public Move? LastMove()
         {
             if (history.Count == 0) return null;
@@ -435,7 +442,6 @@ namespace ChessEngine
         {
             return IsInCheck() && moveGeneration.GenerateMoves().Count == 0;
         }
-
         public bool IsStalemate()
         {
             return !IsInCheck() && moveGeneration.GenerateMoves().Count == 0;
@@ -449,5 +455,10 @@ namespace ChessEngine
         public Move? GetBookMove() => PGNReader.GetBookMove(GenerateFEN(), colorToMove);
         public int WhiteMaterial() => Evaluation.CountMaterial(this, Piece.White);
         public int BlackMaterial() => Evaluation.CountMaterial(this, Piece.Black);
+        public int Evaluate() => Evaluation.Evaluate(this);
+
+        public ulong GetZobristHash() => hash;
+
+        #endregion
     }
 }

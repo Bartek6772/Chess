@@ -17,7 +17,8 @@ namespace ChessUI
         private bool _moveOrderingEnabled = true;
         private int _searchTimeLimit = 5000;
         private int _searchDepth = 5;
-        private string _bookMove = "test";
+        private string _bookMove = "Make move to refresh";
+        private ulong _zobristHash;
 
         public bool AIEnabled {
             get => _AIEnabled;
@@ -56,6 +57,14 @@ namespace ChessUI
             set {
                 _bookMove = value;
                 OnPropertyChanged(nameof(BookMove));
+            }
+        }
+
+        public ulong ZobristHash {
+            get => _zobristHash;
+            set {
+                _zobristHash = value;
+                OnPropertyChanged(nameof(ZobristHash));
             }
         }
 

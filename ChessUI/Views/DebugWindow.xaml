@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ChessUI"
         mc:Ignorable="d"
-        Height="450" Width="500"
+        Height="600" Width="500"
         WindowStyle="None"
         ResizeMode="CanResizeWithGrip"
         AllowsTransparency="True"
@@ -63,6 +63,8 @@
                 <RowDefinition Height="40"/>
                 <RowDefinition Height="40"/>
                 <RowDefinition Height="40"/>
+                <RowDefinition Height="40"/>
+                <RowDefinition Height="40"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
@@ -106,12 +108,22 @@
                 </StackPanel>
             </Border>
 
+            <!-- Row 4-->
             <Border Grid.Row="3" Grid.Column="0">
                 <Label Foreground="White" Content="Book Move"/>
             </Border>
 
             <Border Grid.Row="3" Grid.Column="1">
                 <Label Foreground="White" Content="{Binding BookMove}"/>
+            </Border>
+
+            <!-- Row 5-->
+            <Border Grid.Row="4" Grid.Column="0">
+                <Label Foreground="White" Content="Zobrist Hash"/>
+            </Border>
+
+            <Border Grid.Row="4" Grid.Column="1">
+                <Label Foreground="White" Content="{Binding ZobristHash}"/>
             </Border>
         </Grid>
 
