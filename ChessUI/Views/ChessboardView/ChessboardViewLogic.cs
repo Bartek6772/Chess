@@ -32,6 +32,7 @@ namespace ChessUI
             else {
                 HistoryObject ho = new HistoryObject();
                 ho.MoveWhite = board.GetMoveLongName(move);
+                ho.MoveBlack = "";
                 ho.MoveNumber = moveNumber;
                 moveNumber++;
 
@@ -72,11 +73,7 @@ namespace ChessUI
 
         private void EnemyResponse()
         {
-            // if else ... modes
-            // do color check: player cant choose enemy pieces when playing with computer (selecting during search)
-
             if (!AppSettings.Instance.AIEnabled) return;
-
             FindBestMoveInBackground();
         }
 
@@ -86,17 +83,21 @@ namespace ChessUI
 
             if (selectedSquare != -1) {
 
+                Move.Flags promotionFlag = Move.Flags.None;
+                bool asked = false;
+
                 for (int i = 0; i < moves.Count; i++) {
                     int target = GridToBoard(row, col);
                     if (moves[i].StartSquare == selectedSquare && moves[i].TargetSquare == target) {
 
                         if (moves[i].IsPromotion()) {
 
-                            // ask for piece (if not asked before)
-                            // if match do move
-                            // else continue
+                            if(!asked) {
+                                promotionFlag = Promotion();
+                                asked = true;
+                            }
 
-                            if (moves[i].MoveFlag != Move.Flags.PromotionQueen) {
+                            if (moves[i].MoveFlag != promotionFlag) {
                                 continue;
                             }
 

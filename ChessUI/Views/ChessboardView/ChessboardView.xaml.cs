@@ -1,4 +1,7 @@
 ﻿using ChessEngine;
+using ChessUI.Dialogs;
+using ChessUI.Dialogs.Alert;
+using ChessUI.Dialogs.Promotion;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -32,6 +35,8 @@ namespace ChessUI
         SolidColorBrush highlightColor = new SolidColorBrush(Color.FromArgb(100, 219, 65, 48));
         SolidColorBrush lastMoveColor = new SolidColorBrush(Color.FromArgb(100, 245, 190, 39));
 
+        private DialogService dialogService;
+
         public ChessboardView()
         {
             InitializeComponent();
@@ -48,6 +53,20 @@ namespace ChessUI
             MoveHistory = new ObservableCollection<HistoryObject>();
             MoveHistory.CollectionChanged += ListView_ScrollToBottom;
             DataContext = this;
+
+            dialogService = new DialogService();
+        }
+
+        public void Alert(string title, string message)
+        {
+            var dialog = new AlertDialogViewModel(title, message);
+            var result = dialogService.OpenDialog(dialog);
+        }
+
+        public Move.Flags Promotion()
+        {
+            var dialog = new PromotionDialogViewModel("Promotion", board.colorToMove == Board.WhiteIndex ? "white" : "black");
+            return dialogService.OpenDialog(dialog);
         }
 
         #region Rendering Board
@@ -106,11 +125,11 @@ namespace ChessUI
             moves = board.GenerateMoves();
 
             if (board.IsCheckmate()) {
-                MessageBox.Show("Checkmate");
+                Alert("Koniec gry", (board.colorToMove == Board.BlackIndex ? "Białe" : "Czarne") + " wygrywają - Mat");
                 timer.Stop();
             }
             else if (board.IsStalemate()) {
-                MessageBox.Show("Stalemate");
+                Alert("Koniec gry", "Remis - Pat");
                 timer.Stop();
             }
         }
@@ -179,6 +198,15 @@ namespace ChessUI
         #region Buttons
         private void UndoButton_Click(object sender, RoutedEventArgs e)
         {
+            if(MoveHistory.Count > 0 && AppSettings.Instance.AIEnabled) {
+                if (MoveHistory[MoveHistory.Count - 1].MoveBlack == "") {
+                    return;
+                }
+
+                MoveHistory.RemoveAt(MoveHistory.Count - 1);
+                board.UnmakeMove();
+            }
+
             board.UnmakeMove();
             RefreshBoard();
         }

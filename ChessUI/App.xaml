@@ -2,6 +2,8 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:ChessUI"
+             xmlns:alert="clr-namespace:ChessUI.Dialogs.Alert"
+             xmlns:promotion="clr-namespace:ChessUI.Dialogs.Promotion"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
 
@@ -31,6 +33,14 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
+
+        <DataTemplate DataType="{x:Type alert:AlertDialogViewModel}">
+            <alert:AlertDialogView/>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type promotion:PromotionDialogViewModel}">
+            <promotion:PromotionDialogView/>
+        </DataTemplate>
 
     </Application.Resources>
 </Application>

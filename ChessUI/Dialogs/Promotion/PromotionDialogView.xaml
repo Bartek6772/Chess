@@ -1,0 +1,58 @@
+﻿<UserControl x:Class="ChessUI.Dialogs.Promotion.PromotionDialogView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:ChessUI.Dialogs.Promotion"
+             mc:Ignorable="d" 
+             Width="400" Height="100">
+    <Grid>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+
+        <Grid.Resources>
+            <Style TargetType="Button">
+                <Style.Setters>
+                    <Setter Property="Margin" Value="15"/>
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="CommandParameter" Value="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}}"/>
+                </Style.Setters>
+            </Style>
+        </Grid.Resources>
+        
+        <Button Command="{Binding QueenCommand}" Grid.Column="0">
+            <Grid>
+                <Image Source="/Assets/no_shadow/b_queen_png_128px.png" Visibility="{Binding IsBlack}"/>
+                <Image Source="/Assets/no_shadow/w_queen_png_128px.png" Visibility="{Binding IsWhite}"/>
+            </Grid>
+            
+        </Button>
+
+        <Button Command="{Binding BishopCommand}" Grid.Column="2">
+            <Grid>
+                <Image Source="/Assets/no_shadow/b_bishop_png_128px.png" Visibility="{Binding IsBlack}"/>
+                <Image Source="/Assets/no_shadow/w_bishop_png_128px.png" Visibility="{Binding IsWhite}"/>
+            </Grid>
+        </Button>
+
+        <Button Command="{Binding RookCommand}" Grid.Column="1">
+            <Grid>
+                <Image Source="/Assets/no_shadow/b_rook_png_128px.png" Visibility="{Binding IsBlack}"/>
+                <Image Source="/Assets/no_shadow/w_rook_png_128px.png" Visibility="{Binding IsWhite}"/>
+            </Grid>
+        </Button>
+
+        <Button Command="{Binding KnightCommand}" Grid.Column="3">
+            <Grid>
+                <Image Source="/Assets/no_shadow/b_knight_png_128px.png" Visibility="{Binding IsBlack}"/>
+                <Image Source="/Assets/no_shadow/w_knight_png_128px.png" Visibility="{Binding IsWhite}"/>
+            </Grid>
+        </Button>
+
+    </Grid>
+</UserControl>
