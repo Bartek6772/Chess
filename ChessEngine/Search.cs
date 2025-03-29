@@ -53,6 +53,8 @@ namespace ChessEngine
                 return result;
             }
 
+            return result;
+
             for (int currentDepth = 1; currentDepth <= depth; currentDepth++) {
 
                 bestMoveValue = int.MaxValue;

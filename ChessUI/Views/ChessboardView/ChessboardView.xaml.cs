@@ -292,7 +292,6 @@ namespace ChessUI
         }
         #endregion
 
-        
         public void SetMode(GameMode mode)
         {
             if(mode == GameMode.TwoPlayers) {

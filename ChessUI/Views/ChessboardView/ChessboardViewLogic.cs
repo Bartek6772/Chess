@@ -66,6 +66,8 @@ namespace ChessUI
 
             AppSettings.Instance.ZobristHash = board.GetZobristHash();
 
+            Debug.WriteLine("Book Moves: " + PGNReader.MovesInThisPosition(board.GetZobristHash()));
+
             #region Special Rules
             if (moveRule50 > 50) {
                 state = GameState.FiftyMovesRule;
@@ -130,11 +132,6 @@ namespace ChessUI
                 return (row + col) % 2 == 0;
             }
             #endregion
-        }
-
-        private void UnmakeMove()
-        {
-
         }
 
         public void FindBestMoveInBackground()

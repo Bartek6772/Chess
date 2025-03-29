@@ -13,27 +13,6 @@ namespace ChessEngine
 
         public readonly static int[][] KnightJumps;
 
-        // white short-long ...
-        public readonly static int[][] CastlingSquaresEmpty = {
-            [5, 6],
-            [1, 2, 3],
-            [61, 62],
-            [57, 58, 59]
-        };
-
-        public readonly static int[][] CastlingSquaresNotAttacked = {
-            [5, 6],
-            [2, 3],
-            [61, 62],
-            [58, 59]
-        };
-
-        public readonly static int[][] RooksCastlingPositions = {
-            [7, 5],
-            [0, 3],
-            [63, 61],
-            [56, 59]
-        };
 
         public readonly static PawnDataStruct[] PawnData = {
             new() { direction = 0, doublePushLine = 1, promotionLine = 7, attacksDirections = [4, 6] },
@@ -55,12 +34,6 @@ namespace ChessEngine
 
             KnightJumps = new int[64][];
             PrecomputeKnightJumps();
-
-            //WhitePawnData.attacks = new int[64][];
-            //PrecomputePawnAttacks(ref WhitePawnData, [1, -1], [1, 1]);
-
-            //BlackPawnData.attacks = new int[64][];
-            //PrecomputePawnAttacks(ref BlackPawnData, [1, -1], [-1, -1]);
         }
 
         private static void PrecomputeSlidingMoves()

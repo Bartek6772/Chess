@@ -233,46 +233,33 @@ namespace ChessEngine
             if (board.HasCastlingRight(shortCastle)) {
 
                 bool good = true;
-                foreach (int square in CastlingSquaresEmpty[index * 2]) {
-                    if(board[square] != Piece.None){
-                        good = false;
-                        break;
-                    }
-                }
-
-                foreach (int square in CastlingSquaresNotAttacked[index * 2]) {
-                    if (IsSquareAttacked(square, Piece.OppositeColor(color))) {
+                for (int i = 1; i <= 2; i++) {
+                    int square = start + i;
+                    if (board[square] != Piece.None || IsSquareAttacked(square, Piece.OppositeColor(color))) {
                         good = false;
                         break;
                     }
                 }
 
                 if (good) {
-                    int dir = DirectionOffsets[3];
-                    moves.Add(new Move(start, start + dir * 2, Move.Flags.CastlingKingSide));
+                    moves.Add(new Move(start, start + 2, Move.Flags.Castling));
                 }
             }
 
             if (board.HasCastlingRight(longCastle)) {
 
                 bool good = true;
-                foreach (int square in CastlingSquaresEmpty[index * 2 + 1]) {
-                    if (board[square] != Piece.None) {
+                for (int i = 1; i <= 2; i++) {
+                    int square = start - i;
+                    if (board[square] != Piece.None || IsSquareAttacked(square, Piece.OppositeColor(color))) {
                         good = false;
                         break;
                     }
                 }
-
-                foreach (int square in CastlingSquaresNotAttacked[index * 2 + 1]) {
-                    if (IsSquareAttacked(square, Piece.OppositeColor(color))) {
-                        good = false;
-                        break;
-                    }
-                }
+                good = good && (board[start - 3] == Piece.None);
 
                 if (good) {
-                    int dir = DirectionOffsets[2];
-                    moves.Add(new Move(start, start + dir * 2, Move.Flags.CastlingQueenSide));
+                    moves.Add(new Move(start, start - 2, Move.Flags.Castling));
                 }
             }
         }

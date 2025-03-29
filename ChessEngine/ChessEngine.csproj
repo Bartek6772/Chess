@@ -50,6 +50,9 @@
     <None Update="Database\paul_morphy.pgn">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Database\test.pgn">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Database\viswanathan_anand.pgn">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

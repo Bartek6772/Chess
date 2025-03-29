@@ -10,7 +10,7 @@ namespace ChessEngine
     public static class PGNReader
     {
         private static Board board;
-        private static Dictionary<string, List<Move>[]> bookMoves;
+        private static Dictionary<ulong, List<Move>> bookMoves;
 
         private static int analyzedGames = 0;
 
@@ -21,42 +21,40 @@ namespace ChessEngine
 
             //LoadPGN("Database/test.pgn");
             //LoadPGN("Database/alexander_alekhine.pgn");
-            //LoadPGN("Database/magnus_carlsen.pgn");
+            LoadPGN("Database/test.pgn");
             //LoadPGN("Database/bobby_fischer.pgn");
             //LoadPGN("Database/fabiano_caruana.pgn");
             //LoadPGN("Database/garry_kasparov.pgn");
             //LoadPGN("Database/hikaru_nakamura.pgn");
 
-            string[] txtFiles = Directory.GetFiles("Database/", "*.pgn");
-            foreach (string file in txtFiles) {
-                int last = analyzedGames;
-                LoadPGN(file);
-                Console.WriteLine($"Loaded {analyzedGames - last} games ({file})");
-            }
+            //string[] txtFiles = Directory.GetFiles("Database/", "*.pgn");
+            //foreach (string file in txtFiles) {
+            //    int last = analyzedGames;
+            //    LoadPGN(file);
+            //    Console.WriteLine($"Loaded {analyzedGames - last} games ({file})");
+            //}
 
             Debug.WriteLine(AnalyzedPositions());
         }
 
-        private static void AddBookMove(string fen, Move move, int colorIndex)
+        private static void AddBookMove(ulong hash, Move move)
         {
-            if (!bookMoves.ContainsKey(fen)) {
-                bookMoves[fen] = new List<Move>[2];
-                bookMoves[fen][0] = new List<Move>();
-                bookMoves[fen][1] = new List<Move>();
+            if (!bookMoves.ContainsKey(hash)) {
+                bookMoves[hash] = new List<Move>();
             }
 
             // deleting this line results in multiple identical moves in the same position, if move is selected randomly this will increase chance (more played - bigger chance)
-            if (bookMoves[fen][colorIndex].Contains(move)) return;
-            bookMoves[fen][colorIndex].Add(move);
+            if (bookMoves[hash].Contains(move)) return;
+            bookMoves[hash].Add(move);
         }
 
-        public static Move? GetBookMove(string fen, int colorToMove)
+        public static Move? GetBookMove(ulong hash)
         {
             Random rnd = new();
-            if (bookMoves.ContainsKey(fen)) {
-                int count = bookMoves[fen][colorToMove].Count;
+            if (bookMoves.ContainsKey(hash)) {
+                int count = bookMoves[hash].Count;
                 int idx = rnd.Next(count);
-                return bookMoves[fen][colorToMove][idx];
+                return bookMoves[hash][idx];
             }
             return null;
         }
@@ -78,10 +76,11 @@ namespace ChessEngine
                 if (!string.IsNullOrWhiteSpace(move)) {
                     //Debug.WriteLine(move);
 
-                    string fen = board.GenerateFEN();
+                    Debug.WriteLine(board.GetZobristHash());
+
                     Move m = ParseSan(move.Trim(), colorToMove);
 
-                    AddBookMove(fen, m, colorToMove);
+                    AddBookMove(board.GetZobristHash(), m);
                     board.MakeMove(m);
                     colorToMove = 1 - colorToMove;
 
@@ -130,7 +129,6 @@ namespace ChessEngine
                 LoadMoves(moves);
             }
         }
-
         public static Move ParseSan(string san, int colorToMove)
         {
             Move move = new ();
@@ -265,5 +263,12 @@ namespace ChessEngine
         };
         public static int AnalyzedPositions() => bookMoves.Count;
         public static int AnalyzedGames() => analyzedGames;
+        public static int MovesInThisPosition(ulong hash)
+        {
+            if (bookMoves.ContainsKey(hash)) {
+                return bookMoves[hash].Count;
+            }
+            return 0;
+        }
     }
 }

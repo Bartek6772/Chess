@@ -111,6 +111,7 @@ namespace ChessEngine
                 }
             }
 
+            hash = ZobristHashing.ComputeZobristHash(this);
             InitializePieceList();
         }
 
@@ -177,44 +178,18 @@ namespace ChessEngine
         public void MakeMove(Move move)
         {
             int piece = this[move.StartSquare];
-
-            #region Castling Rights
-            if (piece == Piece.WhiteKing) {
-                RemoveCastling(WK);
-                RemoveCastling(WQ);
-            }
-            else if (piece == Piece.BlackKing) {
-                RemoveCastling(BK);
-                RemoveCastling(BQ);
-            }
-
-            if (move.StartSquare == 0 || move.TargetSquare == 0) {
-                RemoveCastling(WQ);
-            }
-            else if (move.StartSquare == 7 || move.TargetSquare == 7) {
-                RemoveCastling(WK);
-            }
-            else if (move.StartSquare == 63 || move.TargetSquare == 63) {
-                RemoveCastling(BK);
-            }
-            else if (move.StartSquare == 56 || (move.TargetSquare == 56)) {
-                RemoveCastling(BQ);
-            }
-            #endregion
-
-            ZobristHashing.UpdateZobristHash(ref hash, move, this);
+            int moveTo = move.TargetSquare;
+            int moveFrom = move.StartSquare;
 
             GameState newGS = new() { move = move };
             newGS.capturedPiece = this[move.TargetSquare];
             newGS.castlingRights = castlingRights;
             newGS.enpassantSquare = enpassantSquare;
 
-            try {
-                pieceList[piece].MovePiece(move.StartSquare, move.TargetSquare);
-            }
-            catch (NullReferenceException e) {
-                Debug.WriteLine($"{piece} {move.ToString} {move.StartSquare} {move.TargetSquare}");
-            }
+            //ZobristHashing.UpdateZobristHash(ref hash, move, this);
+
+
+            pieceList[piece].MovePiece(move.StartSquare, move.TargetSquare);
 
             if (newGS.capturedPiece != Piece.None) {
                 pieceList[newGS.capturedPiece].RemovePiece(move.TargetSquare);
@@ -224,11 +199,18 @@ namespace ChessEngine
             this[move.StartSquare] = Piece.None;
 
             #region Handling Move Flags
-            if (move.MoveFlag == Move.Flags.CastlingKingSide) {
-                Castle(colorToMove * 2, 0);
-            }
-            else if (move.MoveFlag == Move.Flags.CastlingQueenSide) {
-                Castle(colorToMove * 2 + 1, 0);
+
+            if(move.MoveFlag == Move.Flags.Castling) {
+                bool kingside = move.TargetSquare % 8 == 6;
+
+                int castlingRookFromIndex = (kingside) ? moveTo + 1 : moveTo - 2;
+                int castlingRookToIndex = (kingside) ? moveTo - 1 : moveTo + 1;
+
+                int rook = this[castlingRookFromIndex];
+                this[castlingRookToIndex] = rook;
+                this[castlingRookFromIndex] = Piece.None;
+
+                pieceList[rook].MovePiece(castlingRookFromIndex, castlingRookToIndex);
             }
             else if (move.MoveFlag == Move.Flags.EnPassant) {
                 int dir = PrecomputedMoveData.PawnData[colorToMove].direction;
@@ -259,6 +241,30 @@ namespace ChessEngine
             }
             #endregion
 
+            #region Castling Rights
+            if (piece == Piece.WhiteKing) {
+                RemoveCastling(WK);
+                RemoveCastling(WQ);
+            }
+            else if (piece == Piece.BlackKing) {
+                RemoveCastling(BK);
+                RemoveCastling(BQ);
+            }
+
+            if (move.StartSquare == 0 || move.TargetSquare == 0) {
+                RemoveCastling(WQ);
+            }
+            else if (move.StartSquare == 7 || move.TargetSquare == 7) {
+                RemoveCastling(WK);
+            }
+            if (move.StartSquare == 63 || move.TargetSquare == 63) {
+                RemoveCastling(BK);
+            }
+            else if (move.StartSquare == 56 || (move.TargetSquare == 56)) {
+                RemoveCastling(BQ);
+            }
+            #endregion
+
             colorToMove = 1 - colorToMove;
             history.Push(newGS);
         }
@@ -271,6 +277,10 @@ namespace ChessEngine
             }
 
             GameState oldGS = history.Peek();
+            Move move = oldGS.move;
+            int moveFrom = move.StartSquare;
+            int moveTo = move.TargetSquare;
+
             history.Pop();
 
             int piece = this[oldGS.move.TargetSquare];
@@ -285,12 +295,19 @@ namespace ChessEngine
 
             colorToMove = 1 - colorToMove;
 
-            if (oldGS.move.MoveFlag == Move.Flags.CastlingKingSide) {
-                Castle(colorToMove * 2, 1);
+            if (move.MoveFlag == Move.Flags.Castling) {
+                bool kingside = move.TargetSquare % 8 == 6;
+
+                int castlingRookFromIndex = (kingside) ? moveTo + 1 : moveTo - 2;
+                int castlingRookToIndex = (kingside) ? moveTo - 1 : moveTo + 1;
+
+                int rook = this[castlingRookToIndex];
+                this[castlingRookToIndex] = Piece.None;
+                this[castlingRookFromIndex] = rook;
+
+                pieceList[rook].MovePiece(castlingRookToIndex, castlingRookFromIndex);
             }
-            else if (oldGS.move.MoveFlag == Move.Flags.CastlingQueenSide) {
-                Castle(colorToMove * 2 + 1, 1);
-            }
+
             else if (oldGS.move.MoveFlag == Move.Flags.EnPassant) {
                 int dir = PrecomputedMoveData.PawnData[colorToMove].direction;
                 int enPassant = oldGS.move.TargetSquare - PrecomputedMoveData.DirectionOffsets[dir];
@@ -334,32 +351,9 @@ namespace ChessEngine
         #endregion
 
         #region Castling
-        private void Castle(int idx, int b)
-        {
-            int rook = this[PrecomputedMoveData.RooksCastlingPositions[idx][b]];
-            int start = PrecomputedMoveData.RooksCastlingPositions[idx][b];
-            int end = PrecomputedMoveData.RooksCastlingPositions[idx][1 - b];
-
-            this[end] = rook;
-            this[start] = Piece.None;
-
-            pieceList[rook].MovePiece(start, end);
-        }
-
-        public void RemoveCastling(int rights)
-        {
-            castlingRights &= ~rights;
-        }
-
-        public void AddCastling(int rights)
-        {
-            castlingRights |= rights;
-        }
-
-        public bool HasCastlingRight(int rights)
-        {
-            return (castlingRights & rights) != 0;
-        }
+        public void RemoveCastling(int rights) => castlingRights &= ~rights;
+        public void AddCastling(int rights) => castlingRights |= rights;
+        public bool HasCastlingRight(int rights) => (castlingRights & rights) != 0;
         #endregion
 
         #region Short Methods
@@ -452,7 +446,7 @@ namespace ChessEngine
             return pieceList[Piece.King | Piece.Black * colorIndex][0];
         }
         public bool CanMoveToFrom(int start, int target, out Move.Flags flag) => moveGeneration.CanMoveToFrom(start, target, out flag);
-        public Move? GetBookMove() => PGNReader.GetBookMove(GenerateFEN(), colorToMove);
+        public Move? GetBookMove() => PGNReader.GetBookMove(hash);
         public int WhiteMaterial() => Evaluation.CountMaterial(this, Piece.White);
         public int BlackMaterial() => Evaluation.CountMaterial(this, Piece.Black);
         public int Evaluate() => Evaluation.Evaluate(this);
