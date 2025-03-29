@@ -26,7 +26,7 @@ namespace ChessUI
         int moveNumber = 1;
 
         int moveRule50 = 0;
-        private Dictionary<string, int> positionHistory = new Dictionary<string, int>();
+        private Dictionary<ulong, int> positionHistory = new Dictionary<ulong, int>();
 
         public enum GameState
         {
@@ -79,16 +79,16 @@ namespace ChessUI
                 state = GameState.Stalemate;
             }
 
-            string fen = board.GenerateFEN();
-            if (positionHistory.ContainsKey(fen)) {
-                positionHistory[fen]++;
+            ulong hash = board.GetZobristHash();
+            if (positionHistory.ContainsKey(hash)) {
+                positionHistory[hash]++;
 
-                if (positionHistory[fen] == 3) {
+                if (positionHistory[hash] == 3) {
                     state = GameState.DrawRepetition;
                 }
             }
             else {
-                positionHistory[fen] = 1;
+                positionHistory[hash] = 1;
             }
 
             if (board.pieceList[Piece.WhiteRook].Count + board.pieceList[Piece.BlackRook].Count == 0 &&
@@ -137,7 +137,7 @@ namespace ChessUI
         public void FindBestMoveInBackground()
         {
             Thread thread = new Thread(() => {
-                Search.Result result = search.FindBestMove(AppSettings.Instance.SearchDepth, AppSettings.Instance.SearchTimeLimit);
+                Search.Result result = search.FindBestMove2(AppSettings.Instance.SearchDepth, AppSettings.Instance.SearchTimeLimit);
 
                 if (result.move.HasValue) {
                     Dispatcher.Invoke(() => {

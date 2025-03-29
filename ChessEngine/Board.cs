@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace ChessEngine
 {
@@ -35,6 +36,7 @@ namespace ChessEngine
         public int enpassantSquare = -1;
 
         private MoveGeneration moveGeneration;
+        private TranspositionTable transpositionTable;
         private ulong hash;
 
         public List<Move> GenerateMoves() => moveGeneration.GenerateMoves();
@@ -44,9 +46,16 @@ namespace ChessEngine
             history = new Stack<GameState>();
             moveGeneration = new MoveGeneration(this);
             LoadPositionFromFEN(startFEN);
-            //LoadPositionFromFEN("r2r2k1/pp3p1p/3P2p1/4p2n/4P2q/1Q2bP2/P3BPRP/3R3K w --");
 
             hash = ZobristHashing.ComputeZobristHash(this);
+
+            int sizeMB = 8;
+            int sizeBytes = sizeMB * 1024 * 1024;
+            int entrySizeBytes = Marshal.SizeOf<TranspositionTable.Entry>();
+            int numEntries = sizeBytes / entrySizeBytes;
+            transpositionTable = new TranspositionTable(this, numEntries);
+
+            Debug.WriteLine("numEntries: " + numEntries);
         }
 
         public struct GameState

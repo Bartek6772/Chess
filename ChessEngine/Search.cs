@@ -10,12 +10,12 @@ namespace ChessEngine
     public class Search
     {
         Board board;
+        Stopwatch stopwatch;
 
         const int MinValue = -100000;
         const int MaxValue = 100000;
 
-        Stopwatch stopwatch;
-
+        public bool moveOrdering = true;
         private bool breaker = false;
         private int limit;
 
@@ -25,23 +25,19 @@ namespace ChessEngine
             stopwatch = new Stopwatch();
         }
 
-        public async Task<Result> FindBestMoveAsync(int depth, int timeLimit)
-        {
-            return await Task.Run(() => FindBestMove(depth, timeLimit));
-        }
+        //public async Task<Result> FindBestMoveAsync(int depth, int timeLimit)
+        //{
+        //    return await Task.Run(() => FindBestMove2(depth, timeLimit));
+        //}
 
-        public Result FindBestMove(int depth, int timeLimit)
+        private Move? bestMoveThisIteration;
+        private int bestEvalThisIteration;
+
+        public Result FindBestMove2(int depth, int timeLimit)
         {
             stopwatch.Start();
             breaker = false;
-
             limit = timeLimit;
-
-            Move? bestMove = null;
-
-            int bestAlpha = MinValue;
-            int bestBeta = MaxValue;
-            int bestMoveValue;
 
             Result result = new();
 
@@ -53,42 +49,23 @@ namespace ChessEngine
                 return result;
             }
 
-            return result;
-
             for (int currentDepth = 1; currentDepth <= depth; currentDepth++) {
 
-                bestMoveValue = int.MaxValue;
+                bestMoveThisIteration = null;
+                bestEvalThisIteration = MinValue;
 
-                List<Move> moves = board.GenerateMoves();
-                //moves = moves.OrderByDescending(move => MoveHeuristic(move)).ToList();
+                int eval = Minimax(depth, 0, MinValue, MaxValue);
 
-                if (moves.Count == 0) {
+                if (breaker) {
+                    result.time = stopwatch.ElapsedMilliseconds;
+                    stopwatch.Reset();
                     return result;
                 }
 
-                foreach (var move in moves) {
-                    board.MakeMove(move);
-                    int moveValue = Minimax(currentDepth - 1, bestAlpha, bestBeta);
-                    board.UnmakeMove();
-
-                    if (breaker) {
-                        result.time = stopwatch.ElapsedMilliseconds;
-                        stopwatch.Reset();
-                        return result;
-                    }
-
-                    if (moveValue < bestMoveValue) {
-                        bestMoveValue = moveValue;
-                        bestMove = move;
-                    }
-
-                    bestAlpha = int.Min(bestAlpha, moveValue);
-                    bestBeta = int.Max(bestBeta, moveValue);
-                }
+                result.move = bestMoveThisIteration;
+                result.depth = currentDepth;
 
                 Debug.WriteLine($"Search at depth {currentDepth} time: {stopwatch.ElapsedMilliseconds} ms");
-                result.depth = currentDepth;
-                result.move = bestMove;
             }
 
             result.time = stopwatch.ElapsedMilliseconds;
@@ -96,7 +73,7 @@ namespace ChessEngine
             return result;
         }
 
-        public int Minimax(int depth, int alpha, int beta)
+        public int Minimax(int depth, int depthFromRoot, int alpha, int beta)
         {
             if (depth == 0) {
                 return Evaluation.Evaluate(board) * (board.colorToMove == Board.WhiteIndex ? 1 : -1);
@@ -111,6 +88,7 @@ namespace ChessEngine
             }
 
             List<Move> moves = board.GenerateMoves();
+            if(moveOrdering) moves = moves.OrderByDescending(move => MoveHeuristic(move)).ToList();
 
             if (moves.Count == 0) {
                 if (board.IsInCheck()) {
@@ -124,15 +102,22 @@ namespace ChessEngine
             foreach (Move move in moves) {
                 board.MakeMove(move);
 
-                int evaluation = -Minimax(depth - 1, -beta, -alpha);
+                int evaluation = -Minimax(depth - 1, depthFromRoot + 1,  -beta, -alpha);
 
                 maxVal = int.Max(evaluation, maxVal);
                 board.UnmakeMove();
+
+                if(evaluation > alpha) {
+                    if(depthFromRoot == 0) {
+                        bestMoveThisIteration = move;
+                    }
+                }
 
                 if(evaluation >= beta) {
                     return beta;
                 }
                 alpha = int.Max(alpha, evaluation);
+
             }
 
             return alpha;

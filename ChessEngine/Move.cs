@@ -12,6 +12,8 @@ namespace ChessEngine
         public int TargetSquare;
         public Flags Flag;
 
+        public static Move Null = new Move() { StartSquare = 0, TargetSquare = 0 };
+
         public Move(int startSquare, int targetSquare, Flags flag = Flags.None)
         {
             StartSquare = startSquare;

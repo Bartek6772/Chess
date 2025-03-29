@@ -203,7 +203,6 @@ namespace ChessUI
         #region Buttons
         private void UndoButton_Click(object sender, RoutedEventArgs e)
         {
-            // TODO TEST THIS
             if(MoveHistory.Count > 0) {
 
                 if (AppSettings.Instance.AIEnabled) {
@@ -213,7 +212,7 @@ namespace ChessUI
 
                     MoveHistory.RemoveAt(MoveHistory.Count - 1);
 
-                    positionHistory[board.GenerateFEN()]--;
+                    positionHistory[board.GetZobristHash()]--;
                     board.UnmakeMove();
                     moveNumber--;
                 }
@@ -232,7 +231,7 @@ namespace ChessUI
             }
 
             state = GameState.InProgress;
-            positionHistory[board.GenerateFEN()]--;
+            positionHistory[board.GetZobristHash()]--;
             board.UnmakeMove();
 
             RefreshBoard();

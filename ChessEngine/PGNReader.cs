@@ -21,18 +21,17 @@ namespace ChessEngine
 
             //LoadPGN("Database/test.pgn");
             //LoadPGN("Database/alexander_alekhine.pgn");
-            LoadPGN("Database/test.pgn");
             //LoadPGN("Database/bobby_fischer.pgn");
             //LoadPGN("Database/fabiano_caruana.pgn");
             //LoadPGN("Database/garry_kasparov.pgn");
             //LoadPGN("Database/hikaru_nakamura.pgn");
 
-            //string[] txtFiles = Directory.GetFiles("Database/", "*.pgn");
-            //foreach (string file in txtFiles) {
-            //    int last = analyzedGames;
-            //    LoadPGN(file);
-            //    Console.WriteLine($"Loaded {analyzedGames - last} games ({file})");
-            //}
+            string[] txtFiles = Directory.GetFiles("Database/", "*.pgn");
+            foreach (string file in txtFiles) {
+                int last = analyzedGames;
+                LoadPGN(file);
+                Console.WriteLine($"Loaded {analyzedGames - last} games ({file})");
+            }
 
             Debug.WriteLine(AnalyzedPositions());
         }
@@ -61,7 +60,6 @@ namespace ChessEngine
 
         private static void LoadMoves(string moves)
         {
-            //Console.WriteLine(moves);
             int colorToMove = 0;
 
             string[] splitMoves = moves.Split(' ');
@@ -74,9 +72,8 @@ namespace ChessEngine
                 }
 
                 if (!string.IsNullOrWhiteSpace(move)) {
-                    //Debug.WriteLine(move);
 
-                    Debug.WriteLine(board.GetZobristHash());
+                    //Debug.WriteLine(board.GetZobristHash());
 
                     Move m = ParseSan(move.Trim(), colorToMove);
 
