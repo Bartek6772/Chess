@@ -28,6 +28,8 @@ namespace ChessEngine
         public readonly ulong size;
         public bool enabled = true;
         private Board board;
+        public ulong records = 0;
+        public ulong overwrites = 0;
 
 
         public TranspositionTable(Board board, int size)
@@ -91,6 +93,12 @@ namespace ChessEngine
             if (!enabled) {
                 return;
             }
+
+            if (entries[Index].key == 0)
+                records++;
+            else
+                overwrites++;
+
             //ulong index = Index;
             //if (depth >= entries[Index].depth) {
             Entry entry = new Entry(board.GetZobristHash(), eval, (byte)depth, (byte)evalType, move);

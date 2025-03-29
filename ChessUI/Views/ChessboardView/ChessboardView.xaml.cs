@@ -26,7 +26,6 @@ namespace ChessUI
 
         private Board board;
         private List<Move> moves;
-        private Search search;
 
         bool rotated = false;
 
@@ -44,7 +43,7 @@ namespace ChessUI
             InitializeTimers();
 
             board = new Board();
-            search = new Search(board);
+            //board.LoadPositionFromFEN("8/k7/3p4/p2P1p2/P2P1P2/8/8/1K6 w - -");
             moves = board.GenerateMoves();
 
             DrawBoard();
@@ -215,6 +214,8 @@ namespace ChessUI
                     positionHistory[board.GetZobristHash()]--;
                     board.UnmakeMove();
                     moveNumber--;
+
+                    moveRule50 = Math.Clamp(moveRule50, 0, moveRule50 - 1);
                 }
                 else {
 
@@ -230,6 +231,7 @@ namespace ChessUI
                 }
             }
 
+            moveRule50 = Math.Clamp(moveRule50, 0, moveRule50 - 1);
             state = GameState.InProgress;
             positionHistory[board.GetZobristHash()]--;
             board.UnmakeMove();

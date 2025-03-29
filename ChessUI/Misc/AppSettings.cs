@@ -16,7 +16,7 @@ namespace ChessUI
         private bool _AIEnabled = true;
         private bool _moveOrderingEnabled = true;
         private int _searchTimeLimit = 5000;
-        private int _searchDepth = 5;
+        private int _searchDepth = 10;
         private string _bookMove = "Make move to refresh";
         private ulong _zobristHash;
 
@@ -68,8 +68,12 @@ namespace ChessUI
             }
         }
 
+        static AppSettings(){
+            Instance.logs = new ObservableCollection<string>();
+        }
 
-        public ObservableCollection<string> logs = new ObservableCollection<string>();
+
+        public ObservableCollection<string> logs { get; set; }
 
 
         public event PropertyChangedEventHandler PropertyChanged;

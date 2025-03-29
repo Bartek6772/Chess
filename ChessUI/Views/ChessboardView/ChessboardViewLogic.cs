@@ -137,7 +137,7 @@ namespace ChessUI
         public void FindBestMoveInBackground()
         {
             Thread thread = new Thread(() => {
-                Search.Result result = search.FindBestMove2(AppSettings.Instance.SearchDepth, AppSettings.Instance.SearchTimeLimit);
+                SearchResult result = board.FindBestMove(AppSettings.Instance.SearchDepth, AppSettings.Instance.SearchTimeLimit);
 
                 if (result.move.HasValue) {
                     Dispatcher.Invoke(() => {

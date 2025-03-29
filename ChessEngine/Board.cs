@@ -37,6 +37,7 @@ namespace ChessEngine
 
         private MoveGeneration moveGeneration;
         private TranspositionTable transpositionTable;
+        private Search search;
         private ulong hash;
 
         public List<Move> GenerateMoves() => moveGeneration.GenerateMoves();
@@ -49,13 +50,38 @@ namespace ChessEngine
 
             hash = ZobristHashing.ComputeZobristHash(this);
 
-            int sizeMB = 8;
+            int sizeMB = 128;
             int sizeBytes = sizeMB * 1024 * 1024;
             int entrySizeBytes = Marshal.SizeOf<TranspositionTable.Entry>();
             int numEntries = sizeBytes / entrySizeBytes;
             transpositionTable = new TranspositionTable(this, numEntries);
 
+            search = new Search(this, transpositionTable);
+
             Debug.WriteLine("numEntries: " + numEntries);
+        }
+        private void InitializePieceList()
+        {
+            // TODO: Handle situation when user load position with more than max amount of pieces
+            pieceList = new PieceList[Piece.MaxPieceIndex + 1];
+            pieceList[Piece.WhitePawn] = new PieceList(8);
+            pieceList[Piece.WhiteKnight] = new PieceList(10);
+            pieceList[Piece.WhiteBishop] = new PieceList(10);
+            pieceList[Piece.WhiteRook] = new PieceList(10);
+            pieceList[Piece.WhiteQueen] = new PieceList(9);
+            pieceList[Piece.WhiteKing] = new PieceList(1);
+
+            pieceList[Piece.BlackPawn] = new PieceList(8);
+            pieceList[Piece.BlackKnight] = new PieceList(10);
+            pieceList[Piece.BlackBishop] = new PieceList(10);
+            pieceList[Piece.BlackRook] = new PieceList(10);
+            pieceList[Piece.BlackQueen] = new PieceList(9);
+            pieceList[Piece.BlackKing] = new PieceList(1);
+
+            for (int i = 0; i < 64; i++) {
+                if (this[i] == Piece.None) continue;
+                pieceList[this[i]].AddPiece(i);
+            }
         }
 
         public struct GameState
@@ -66,6 +92,7 @@ namespace ChessEngine
             public int enpassantSquare;
         }
 
+        // TODO Extract FEN to new file
         public void LoadPositionFromFEN(string fen)
         {
             Squares = new int[64];
@@ -186,6 +213,11 @@ namespace ChessEngine
 
         public void MakeMove(Move move)
         {
+            if(move.StartSquare == Move.Null.StartSquare && move.TargetSquare == Move.Null.TargetSquare) {
+                Debug.WriteLine("TRYING TO MAKE NULL MOVE!!!!!!!!!!!!");
+                return;
+            }
+
             int piece = this[move.StartSquare];
             int color = colorToMove * Piece.Black;
             int moveTo = move.TargetSquare;
@@ -401,7 +433,6 @@ namespace ChessEngine
         }
 
 
-
         #region Castling
         public void RemoveCastling(int rights) => castlingRights &= ~rights;
         public void AddCastling(int rights) => castlingRights |= rights;
@@ -414,7 +445,6 @@ namespace ChessEngine
             if (history.Count == 0) return null;
             return history.Peek().move;
         }
-
         public string GetMoveLongName(Move move)
         {
             if (move.IsPromotion()) {
@@ -448,63 +478,25 @@ namespace ChessEngine
 
             return p + SquareToString(move.StartSquare) + "-" + SquareToString(move.TargetSquare);
         }
-
-        public string SquareToString(int square)
-        {
-            int x = square % 8;
-            int y = square / 8;
-            return (char)('a' + x) + (y + 1).ToString();
-        }
-
-        private void InitializePieceList()
-        {
-            // TODO: Handle situation when user load position with more than max amount of pieces
-            pieceList = new PieceList[Piece.MaxPieceIndex + 1];
-            pieceList[Piece.WhitePawn] = new PieceList(8);
-            pieceList[Piece.WhiteKnight] = new PieceList(10);
-            pieceList[Piece.WhiteBishop] = new PieceList(10);
-            pieceList[Piece.WhiteRook] = new PieceList(10);
-            pieceList[Piece.WhiteQueen] = new PieceList(9);
-            pieceList[Piece.WhiteKing] = new PieceList(1);
-
-            pieceList[Piece.BlackPawn] = new PieceList(8);
-            pieceList[Piece.BlackKnight] = new PieceList(10);
-            pieceList[Piece.BlackBishop] = new PieceList(10);
-            pieceList[Piece.BlackRook] = new PieceList(10);
-            pieceList[Piece.BlackQueen] = new PieceList(9);
-            pieceList[Piece.BlackKing] = new PieceList(1);
-
-            for (int i = 0; i < 64; i++) {
-                if (this[i] == Piece.None) continue;
-                pieceList[this[i]].AddPiece(i);
-            }
-        }
-
-        public bool IsInCheck()
-        {
-            int pos = KingPosition(colorToMove);
-            return moveGeneration.IsSquareAttacked(pos, (1 - colorToMove) * Piece.Black);
-        }
-        public bool IsCheckmate()
-        {
-            return IsInCheck() && moveGeneration.GenerateMoves().Count == 0;
-        }
-        public bool IsStalemate()
-        {
-            return !IsInCheck() && moveGeneration.GenerateMoves().Count == 0;
-        }
-
+        public bool CanMoveToFrom(int start, int target, out Move.Flags flag) => moveGeneration.CanMoveToFrom(start, target, out flag);
+        public string SquareToString(int square) => (char)('a' + square % 8) + (square / 8 + 1).ToString();
         public int KingPosition(int colorIndex)
         {
             return pieceList[Piece.King | Piece.Black * colorIndex][0];
         }
-        public bool CanMoveToFrom(int start, int target, out Move.Flags flag) => moveGeneration.CanMoveToFrom(start, target, out flag);
-        public Move? GetBookMove() => PGNReader.GetBookMove(hash);
+
+        public bool IsInCheck() => moveGeneration.IsSquareAttacked(KingPosition(colorToMove), (1 - colorToMove) * Piece.Black);
+        public bool IsCheckmate() => IsInCheck() && moveGeneration.GenerateMoves().Count == 0;
+        public bool IsStalemate() => !IsInCheck() && moveGeneration.GenerateMoves().Count == 0;
+
+
         public int WhiteMaterial() => Evaluation.CountMaterial(this, Piece.White);
         public int BlackMaterial() => Evaluation.CountMaterial(this, Piece.Black);
         public int Evaluate() => Evaluation.Evaluate(this);
 
         public ulong GetZobristHash() => hash;
+        public Move? GetBookMove() => PGNReader.GetBookMove(hash);
+        public SearchResult FindBestMove(int depth, int timeLimit) => search.FindBestMove2(depth, timeLimit);
 
         #endregion
     }

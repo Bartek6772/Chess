@@ -7,9 +7,10 @@ using System.Threading.Tasks;
 
 namespace ChessEngine
 {
-    public class Search
+    class Search
     {
         Board board;
+        TranspositionTable transpositionTable;
         Stopwatch stopwatch;
 
         const int MinValue = -100000;
@@ -19,27 +20,26 @@ namespace ChessEngine
         private bool breaker = false;
         private int limit;
 
-        public Search(Board board)
+        public Search(Board board, TranspositionTable transpositionTable)
         {
             this.board = board;
             stopwatch = new Stopwatch();
+            this.transpositionTable = transpositionTable;
         }
-
-        //public async Task<Result> FindBestMoveAsync(int depth, int timeLimit)
-        //{
-        //    return await Task.Run(() => FindBestMove2(depth, timeLimit));
-        //}
 
         private Move? bestMoveThisIteration;
         private int bestEvalThisIteration;
 
-        public Result FindBestMove2(int depth, int timeLimit)
+        public SearchResult FindBestMove2(int depth, int timeLimit)
         {
+            //transpositionTable.Clear();
+
+
             stopwatch.Start();
             breaker = false;
             limit = timeLimit;
 
-            Result result = new();
+            SearchResult result = new();
 
             Move? bookMove = board.GetBookMove();
             if (bookMove.HasValue) {
@@ -54,22 +54,24 @@ namespace ChessEngine
                 bestMoveThisIteration = null;
                 bestEvalThisIteration = MinValue;
 
-                int eval = Minimax(depth, 0, MinValue, MaxValue);
+                int eval = Minimax(currentDepth, 0, MinValue, MaxValue);
 
                 if (breaker) {
-                    result.time = stopwatch.ElapsedMilliseconds;
+                    //result.time = stopwatch.ElapsedMilliseconds;
+                    Debug.WriteLine("TT " + ((float)transpositionTable.records / (float)transpositionTable.size) + " " + ((float)transpositionTable.overwrites / (float)transpositionTable.size));
                     stopwatch.Reset();
                     return result;
                 }
 
                 result.move = bestMoveThisIteration;
                 result.depth = currentDepth;
+                result.time = stopwatch.ElapsedMilliseconds;
 
                 Debug.WriteLine($"Search at depth {currentDepth} time: {stopwatch.ElapsedMilliseconds} ms");
             }
-
-            result.time = stopwatch.ElapsedMilliseconds;
+            
             stopwatch.Reset();
+            Debug.WriteLine("TT " + ((float)transpositionTable.records / (float)transpositionTable.size) + " " + ((float)transpositionTable.overwrites / (float)transpositionTable.size));
             return result;
         }
 
@@ -87,6 +89,15 @@ namespace ChessEngine
                 return 0;
             }
 
+            int ttEval = transpositionTable.LookupEvaluation(depth, depthFromRoot, alpha, beta);
+            if (ttEval != TranspositionTable.lookupFailed) {
+                if(depthFromRoot == 0) {
+                    bestMoveThisIteration = transpositionTable.GetStoredMove();
+                    bestEvalThisIteration = transpositionTable.entries[transpositionTable.Index].eval;
+                }
+                return ttEval;
+            }
+
             List<Move> moves = board.GenerateMoves();
             if(moveOrdering) moves = moves.OrderByDescending(move => MoveHeuristic(move)).ToList();
 
@@ -98,6 +109,8 @@ namespace ChessEngine
             }
 
             int maxVal = int.MinValue;
+            int evaluationBound = TranspositionTable.UpperBound;
+            Move bestMoveInThisPosition = Move.Null;
 
             foreach (Move move in moves) {
                 board.MakeMove(move);
@@ -108,18 +121,26 @@ namespace ChessEngine
                 board.UnmakeMove();
 
                 if(evaluation > alpha) {
-                    if(depthFromRoot == 0) {
+
+                    evaluationBound = TranspositionTable.Exact;
+                    bestMoveInThisPosition = move;
+
+                    alpha = evaluation;
+
+                    if (depthFromRoot == 0) {
                         bestMoveThisIteration = move;
                     }
                 }
 
                 if(evaluation >= beta) {
+                    transpositionTable.StoreEvaluation(depth, depthFromRoot, beta, TranspositionTable.LowerBound, move);
                     return beta;
                 }
-                alpha = int.Max(alpha, evaluation);
+                //alpha = int.Max(alpha, evaluation);
 
             }
 
+            transpositionTable.StoreEvaluation(depth, depthFromRoot, alpha, evaluationBound, bestMoveInThisPosition);
             return alpha;
         }
 
@@ -141,12 +162,14 @@ namespace ChessEngine
             return score;
         }
 
-        public struct Result
-        {
-            public Move? move;
-            public long time;
-            public int depth;
-        }
+        
 
+    }
+
+    public struct SearchResult
+    {
+        public Move? move;
+        public long time;
+        public int depth;
     }
 }
