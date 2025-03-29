@@ -19,8 +19,8 @@ namespace Tests
 
                 if (depth - 1 == 0) {
                     results.nodes++;
-                    if (move.MoveFlag == Move.Flags.EnPassant) results.enpassant++;
-                    if (move.MoveFlag == Move.Flags.CastlingQueenSide || move.MoveFlag == Move.Flags.CastlingKingSide) results.castling++;
+                    if (move.Flag == Move.Flags.EnPassant) results.enpassant++;
+                    if (move.Flag == Move.Flags.Castling) results.castling++;
                     if (move.IsPromotion()) results.promotions++;
                 }
                 else {

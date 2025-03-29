@@ -10,13 +10,13 @@ namespace ChessEngine
     {
         public int StartSquare;
         public int TargetSquare;
-        public Flags MoveFlag;
+        public Flags Flag;
 
         public Move(int startSquare, int targetSquare, Flags flag = Flags.None)
         {
             StartSquare = startSquare;
             TargetSquare = targetSquare;
-            MoveFlag = flag;
+            Flag = flag;
         }
 
         public enum Flags
@@ -27,13 +27,11 @@ namespace ChessEngine
             PromotionRook = 3,
             PromotionQueen = 4,
             EnPassant = 5,
-            CastlingKingSide = 6,
-            CastlingQueenSide = 7,
-            DoublePush = 8,
-            Castling = 9,
+            Castling = 6,
+            DoublePush = 7,
         }
 
-        public bool IsPromotion() => MoveFlag is Flags.PromotionRook or Flags.PromotionQueen or Flags.PromotionBishop or Flags.PromotionKnight;
+        public bool IsPromotion() => Flag is Flags.PromotionRook or Flags.PromotionQueen or Flags.PromotionBishop or Flags.PromotionKnight;
 
         public override string ToString()
         {

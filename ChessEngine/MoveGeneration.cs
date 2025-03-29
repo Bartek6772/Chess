@@ -94,7 +94,7 @@ namespace ChessEngine
                     board.UnmakeMove();
 
                     if (legal) {
-                        flag = move.MoveFlag;
+                        flag = move.Flag;
                         return true;
                     }
                 }

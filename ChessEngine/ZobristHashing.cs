@@ -10,18 +10,11 @@ namespace ChessEngine
     public static class ZobristHashing
     {
         private static ulong[,] pieceSquareHash = new ulong[12, 64];
-        private static ulong sideToMoveHash;
         private static ulong[] castlingRightsHash = new ulong[16];
         private static ulong[] enPassantFileHash = new ulong[8];
-
-        private static Random random = new Random();
+        private static ulong sideToMoveHash;
 
         private const string path = "zobrist.txt";
-
-        public static void Test()
-        {
-            Console.WriteLine(pieceSquareHash[0, 0]);
-        }
 
         static ZobristHashing()
         {
@@ -134,43 +127,48 @@ namespace ChessEngine
             return hash;
         }
 
-        public static void UpdateZobristHash(ref ulong hash, Move move, Board board)
-        {
-            int from = move.StartSquare;
-            int to = move.TargetSquare;
-            int movingPiece = board[from];
-            int pieceIndex = GetPieceIndex(movingPiece);
+        //public static void UpdateZobristHash(ref ulong hash, Move move, Board board)
+        //{
+        //    int from = move.StartSquare;
+        //    int to = move.TargetSquare;
+        //    int movingPiece = board[from];
+        //    int pieceIndex = GetPieceIndex(movingPiece);
 
-            // XOR out the old piece position
-            hash ^= pieceSquareHash[pieceIndex, from];
+        //    // XOR out the old piece position
+        //    hash ^= pieceSquareHash[pieceIndex, from];
 
-            // XOR in the new piece position
-            hash ^= pieceSquareHash[pieceIndex, to];
+        //    // XOR in the new piece position
+        //    hash ^= pieceSquareHash[pieceIndex, to];
 
-            // If a capture occurs, remove the captured piece
-            if (board[to] != Piece.None) {
-                int capturedPiece = board[to];
-                int capturedIndex = GetPieceIndex(capturedPiece);
-                hash ^= pieceSquareHash[capturedIndex, to];
-            }
+        //    // If a capture occurs, remove the captured piece
+        //    if (board[to] != Piece.None) {
+        //        int capturedPiece = board[to];
+        //        int capturedIndex = GetPieceIndex(capturedPiece);
+        //        hash ^= pieceSquareHash[capturedIndex, to];
+        //    }
 
-            // If en passant capture, remove the captured pawn
-            if (move.MoveFlag == Move.Flags.EnPassant) {
-                int capturedPawnSquare = to - (board.colorToMove == Board.WhiteIndex ? 8 : -8);
-                hash ^= pieceSquareHash[GetPieceIndex(Piece.Pawn), capturedPawnSquare];
-            }
+        //    // If en passant capture, remove the captured pawn
+        //    if (move.MoveFlag == Move.Flags.EnPassant) {
+        //        int capturedPawnSquare = to - (board.colorToMove == Board.WhiteIndex ? 8 : -8);
+        //        hash ^= pieceSquareHash[GetPieceIndex(Piece.Pawn), capturedPawnSquare];
+        //    }
 
-            // XOR castling rights if they change
-            hash ^= castlingRightsHash[board.castlingRights];
+        //    // XOR castling rights if they change
+        //    hash ^= castlingRightsHash[board.castlingRights];
 
-            // XOR en passant file if a pawn moves two squares
-            if (move.MoveFlag == Move.Flags.DoublePush) {
-                hash ^= enPassantFileHash[to % 8];
-            }
+        //    // XOR en passant file if a pawn moves two squares
+        //    if (move.MoveFlag == Move.Flags.DoublePush) {
+        //        hash ^= enPassantFileHash[to % 8];
+        //    }
 
-            // XOR side to move
-            hash ^= sideToMoveHash;
-        }
+        //    // XOR side to move
+        //    hash ^= sideToMoveHash;
+        //}
+
+        public static ulong GetPieceHash(int piece, int square) => pieceSquareHash[GetPieceIndex(piece), square];
+        public static ulong EnpassantFile(int file) => enPassantFileHash[file];
+        public static ulong CastlingRights(int rights) => castlingRightsHash[rights];
+        public static ulong SideToMove() => sideToMoveHash;
 
         private static int GetPieceIndex(int piece)
         {

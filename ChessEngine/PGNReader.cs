@@ -136,13 +136,13 @@ namespace ChessEngine
             string original = san;
 
             if (san == "O-O") {
-                move.MoveFlag = Move.Flags.CastlingKingSide;
+                move.Flag = Move.Flags.Castling;
                 move.StartSquare = board.pieceList[Piece.King | color][0];
                 move.TargetSquare = board.pieceList[Piece.King | color][0] + PrecomputedMoveData.DirectionOffsets[3] * 2;
                 return move;
             }
             if (san == "O-O-O") {
-                move.MoveFlag = Move.Flags.CastlingQueenSide;
+                move.Flag = Move.Flags.Castling;
                 move.StartSquare = board.pieceList[Piece.King | color][0];
                 move.TargetSquare = board.pieceList[Piece.King | color][0] + PrecomputedMoveData.DirectionOffsets[2] * 2;
                 return move;
@@ -166,7 +166,7 @@ namespace ChessEngine
             if (san.Contains("=")) {
                 string[] parts = san.Split('=');
                 san = parts[0];
-                move.MoveFlag = parts[1] switch {
+                move.Flag = parts[1] switch {
                     "Q" => Move.Flags.PromotionQueen,
                     "N" => Move.Flags.PromotionKnight,
                     "B" => Move.Flags.PromotionBishop,
@@ -176,7 +176,7 @@ namespace ChessEngine
             }
 
             if(pieceSymbols.Contains(san[san.Length - 1].ToString())) {
-                move.MoveFlag = san[san.Length - 1].ToString() switch {
+                move.Flag = san[san.Length - 1].ToString() switch {
                     "Q" => Move.Flags.PromotionQueen,
                     "N" => Move.Flags.PromotionKnight,
                     "B" => Move.Flags.PromotionBishop,
@@ -214,7 +214,7 @@ namespace ChessEngine
                     }
 
                     if (board.CanMoveToFrom(start, move.TargetSquare, out Move.Flags flag)) {
-                        if (move.MoveFlag == Move.Flags.None) move.MoveFlag = flag;
+                        if (move.Flag == Move.Flags.None) move.Flag = flag;
                         move.StartSquare = start;
                         return move;
                     }
@@ -228,7 +228,7 @@ namespace ChessEngine
             
             foreach (int start in board.pieceList[piece | color]) {
                 if (board.CanMoveToFrom(start, move.TargetSquare, out Move.Flags flag)) {
-                    if (move.MoveFlag == Move.Flags.None) move.MoveFlag = flag;
+                    if (move.Flag == Move.Flags.None) move.Flag = flag;
                     move.StartSquare = start;
                     return move;
                 }

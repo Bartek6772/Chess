@@ -178,29 +178,44 @@ namespace ChessEngine
         public void MakeMove(Move move)
         {
             int piece = this[move.StartSquare];
+            int color = colorToMove * Piece.Black;
             int moveTo = move.TargetSquare;
             int moveFrom = move.StartSquare;
+            int oldEnpassant = enpassantSquare;
+            int originalCastleRights = castlingRights;
 
             GameState newGS = new() { move = move };
             newGS.capturedPiece = this[move.TargetSquare];
             newGS.castlingRights = castlingRights;
             newGS.enpassantSquare = enpassantSquare;
 
-            //ZobristHashing.UpdateZobristHash(ref hash, move, this);
-
-
-            pieceList[piece].MovePiece(move.StartSquare, move.TargetSquare);
-
+            // Handle Capture
             if (newGS.capturedPiece != Piece.None) {
+                hash ^= ZobristHashing.GetPieceHash(newGS.capturedPiece, moveTo);
                 pieceList[newGS.capturedPiece].RemovePiece(move.TargetSquare);
             }
 
-            this[move.TargetSquare] = piece;
-            this[move.StartSquare] = Piece.None;
+            // Update piece list
+            pieceList[piece].MovePiece(move.StartSquare, move.TargetSquare);
 
-            #region Handling Move Flags
+            // Handling Move Flags
+            int pieceOnTargetSquare = piece;
+            if (move.IsPromotion()) {
 
-            if(move.MoveFlag == Move.Flags.Castling) {
+                int promoteType = move.Flag switch {
+                    Move.Flags.PromotionQueen => Piece.Queen,
+                    Move.Flags.PromotionRook => Piece.Rook,
+                    Move.Flags.PromotionKnight => Piece.Knight,
+                    Move.Flags.PromotionBishop => Piece.Bishop,
+                    _ => 0
+                };
+
+                pieceOnTargetSquare = promoteType | color;
+                pieceList[pieceOnTargetSquare].AddPiece(moveTo);
+                pieceList[Piece.Pawn | color].RemovePiece(moveTo);
+            }
+            else if (move.Flag == Move.Flags.Castling) {
+
                 bool kingside = move.TargetSquare % 8 == 6;
 
                 int castlingRookFromIndex = (kingside) ? moveTo + 1 : moveTo - 2;
@@ -211,35 +226,30 @@ namespace ChessEngine
                 this[castlingRookFromIndex] = Piece.None;
 
                 pieceList[rook].MovePiece(castlingRookFromIndex, castlingRookToIndex);
+
+                hash ^= ZobristHashing.GetPieceHash(rook, castlingRookFromIndex);
+                hash ^= ZobristHashing.GetPieceHash(rook, castlingRookToIndex);
             }
-            else if (move.MoveFlag == Move.Flags.EnPassant) {
-                int dir = PrecomputedMoveData.PawnData[colorToMove].direction;
-                int enPassant = move.TargetSquare - PrecomputedMoveData.DirectionOffsets[dir];
+            else if (move.Flag == Move.Flags.EnPassant) {
+
+                int enPassant = moveTo + ((colorToMove == WhiteIndex) ? -8 : 8);
+                newGS.capturedPiece = this[enPassant];
 
                 pieceList[this[enPassant]].RemovePiece(enPassant);
                 this[enPassant] = Piece.None;
-            }
-            else if (move.MoveFlag == Move.Flags.PromotionQueen) {
-                Promote(Piece.Queen, move);
-            }
-            else if (move.MoveFlag == Move.Flags.PromotionBishop) {
-                Promote(Piece.Bishop, move);
-            }
-            else if (move.MoveFlag == Move.Flags.PromotionKnight) {
-                Promote(Piece.Knight, move);
-            }
-            else if (move.MoveFlag == Move.Flags.PromotionRook) {
-                Promote(Piece.Rook, move);
+
+                hash ^= ZobristHashing.GetPieceHash(newGS.capturedPiece, enPassant);
             }
 
-            if (move.MoveFlag == Move.Flags.DoublePush) {
-                int dir = PrecomputedMoveData.PawnData[colorToMove].direction;
-                enpassantSquare = move.TargetSquare - PrecomputedMoveData.DirectionOffsets[dir];
+            // Update board
+            this[move.TargetSquare] = pieceOnTargetSquare;
+            this[move.StartSquare] = Piece.None;
+
+            enpassantSquare = -1;
+            if (move.Flag == Move.Flags.DoublePush) {
+                enpassantSquare = moveTo + ((colorToMove == WhiteIndex) ? -8 : 8);
+                hash ^= ZobristHashing.EnpassantFile(enpassantSquare % 8);
             }
-            else {
-                enpassantSquare = -1;
-            }
-            #endregion
 
             #region Castling Rights
             if (piece == Piece.WhiteKing) {
@@ -265,6 +275,19 @@ namespace ChessEngine
             }
             #endregion
 
+            hash ^= ZobristHashing.SideToMove();
+            hash ^= ZobristHashing.GetPieceHash(piece, moveFrom);
+            hash ^= ZobristHashing.GetPieceHash(pieceOnTargetSquare, moveTo);
+
+            if(oldEnpassant != -1) {
+                hash ^= ZobristHashing.EnpassantFile(oldEnpassant % 8);
+            }
+
+            if(originalCastleRights != castlingRights) {
+                hash ^= ZobristHashing.CastlingRights(originalCastleRights);
+                hash ^= ZobristHashing.CastlingRights(castlingRights);
+            }
+
             colorToMove = 1 - colorToMove;
             history.Push(newGS);
         }
@@ -277,78 +300,98 @@ namespace ChessEngine
             }
 
             GameState oldGS = history.Peek();
-            Move move = oldGS.move;
-            int moveFrom = move.StartSquare;
-            int moveTo = move.TargetSquare;
-
             history.Pop();
-
-            int piece = this[oldGS.move.TargetSquare];
-
-            pieceList[piece].MovePiece(oldGS.move.TargetSquare, oldGS.move.StartSquare);
-            if (oldGS.capturedPiece != Piece.None) {
-                pieceList[oldGS.capturedPiece].AddPiece(oldGS.move.TargetSquare);
-            }
-
-            this[oldGS.move.TargetSquare] = oldGS.capturedPiece;
-            this[oldGS.move.StartSquare] = piece;
 
             colorToMove = 1 - colorToMove;
 
-            if (move.MoveFlag == Move.Flags.Castling) {
+            Move move = oldGS.move;
+            int movedFrom = move.StartSquare;
+            int movedTo = move.TargetSquare;
+
+            int oldEnpassant = oldGS.enpassantSquare;
+            bool isEnpassant = move.Flag == Move.Flags.EnPassant;
+            int originalRights = castlingRights;
+
+            int piece = this[movedTo];
+            int color = colorToMove * Piece.Black;
+            int toSquarePieceType = Piece.PieceType(piece);
+            int movedPieceType = (move.IsPromotion()) ? Piece.Pawn : toSquarePieceType;
+
+            int movedPiece = movedPieceType | color;
+
+            hash ^= ZobristHashing.SideToMove();
+            hash ^= ZobristHashing.GetPieceHash(movedPieceType | color, movedFrom);
+            hash ^= ZobristHashing.GetPieceHash(toSquarePieceType | color, movedTo);
+
+            // Remove current and add old enpassant
+            if(enpassantSquare != -1) {
+                hash ^= ZobristHashing.EnpassantFile(enpassantSquare % 8);
+            }
+
+            if (oldEnpassant != -1) {
+                hash ^= ZobristHashing.EnpassantFile(oldEnpassant % 8);
+            }
+
+            // Capture without enpassant
+            if(oldGS.capturedPiece != Piece.None && !isEnpassant) {
+                hash ^= ZobristHashing.GetPieceHash(oldGS.capturedPiece, movedTo);
+                pieceList[oldGS.capturedPiece].AddPiece(movedTo);
+            }
+
+            if (!move.IsPromotion()) {
+                pieceList[movedPiece].MovePiece(movedTo, movedFrom);
+            }
+
+            this[movedFrom] = movedPiece;
+            this[movedTo] = oldGS.capturedPiece;
+
+            if (move.IsPromotion()) {
+                pieceList[Piece.Pawn | color].AddPiece(movedFrom);
+
+                int promoteType = move.Flag switch {
+                    Move.Flags.PromotionQueen => Piece.Queen,
+                    Move.Flags.PromotionRook => Piece.Rook,
+                    Move.Flags.PromotionKnight => Piece.Knight,
+                    Move.Flags.PromotionBishop => Piece.Bishop,
+                    _ => 0
+                };
+
+                pieceList[promoteType | color].RemovePiece(movedTo);
+            }
+            else if (isEnpassant) {
+                int epIndex = movedTo + ((colorToMove == WhiteIndex) ? -8 : 8);
+                this[movedTo] = 0; // added at this square (captured piece) before
+                this[epIndex] = oldGS.capturedPiece;
+                pieceList[oldGS.capturedPiece].AddPiece(epIndex);
+
+                hash ^= ZobristHashing.GetPieceHash(oldGS.capturedPiece, movedTo);
+            }
+            else if (move.Flag == Move.Flags.Castling) {
                 bool kingside = move.TargetSquare % 8 == 6;
 
-                int castlingRookFromIndex = (kingside) ? moveTo + 1 : moveTo - 2;
-                int castlingRookToIndex = (kingside) ? moveTo - 1 : moveTo + 1;
+                int castlingRookFromIndex = (kingside) ? movedTo + 1 : movedTo - 2;
+                int castlingRookToIndex = (kingside) ? movedTo - 1 : movedTo + 1;
 
                 int rook = this[castlingRookToIndex];
                 this[castlingRookToIndex] = Piece.None;
                 this[castlingRookFromIndex] = rook;
 
                 pieceList[rook].MovePiece(castlingRookToIndex, castlingRookFromIndex);
-            }
 
-            else if (oldGS.move.MoveFlag == Move.Flags.EnPassant) {
-                int dir = PrecomputedMoveData.PawnData[colorToMove].direction;
-                int enPassant = oldGS.move.TargetSquare - PrecomputedMoveData.DirectionOffsets[dir];
-
-                int p = Piece.Pawn | (colorToMove == 0 ? Piece.Black : Piece.White);
-                pieceList[p].AddPiece(enPassant);
-                this[enPassant] = p;
-            }
-            else if (oldGS.move.IsPromotion()) {
-                UnPromote(oldGS.move);
+                hash ^= ZobristHashing.GetPieceHash(rook, castlingRookFromIndex);
+                hash ^= ZobristHashing.GetPieceHash(rook, castlingRookToIndex);
             }
 
             castlingRights = oldGS.castlingRights;
             enpassantSquare = oldGS.enpassantSquare;
 
-            ZobristHashing.UpdateZobristHash(ref hash, oldGS.move, this);
+            if (originalRights != castlingRights) {
+                hash ^= ZobristHashing.CastlingRights(originalRights);
+                hash ^= ZobristHashing.CastlingRights(castlingRights);
+            }
         }
 
-        #region Promotion
-        private void Promote(int piece, Move move)
-        {
-            int pawn = Piece.Pawn | (colorToMove * Piece.Black);
 
-            int promotionPiece = piece | (colorToMove * Piece.Black);
-            pieceList[pawn].RemovePiece(move.TargetSquare);
-            pieceList[promotionPiece].AddPiece(move.TargetSquare);
-            this[move.TargetSquare] = promotionPiece;
-        }
-
-        private void UnPromote(Move move)
-        {
-            // Firstly moving piece back, than changing it back
-            int pawn = Piece.Pawn | (colorToMove * Piece.Black);
-            int promotionPiece = this[move.StartSquare];
-
-            pieceList[pawn].AddPiece(move.StartSquare);
-            pieceList[promotionPiece].RemovePiece(move.StartSquare);
-
-            this[move.StartSquare] = pawn;
-        }
-        #endregion
 
         #region Castling
         public void RemoveCastling(int rights) => castlingRights &= ~rights;
@@ -366,7 +409,7 @@ namespace ChessEngine
         public string GetMoveLongName(Move move)
         {
             if (move.IsPromotion()) {
-                string p2 = move.MoveFlag switch {
+                string p2 = move.Flag switch {
                     Move.Flags.PromotionBishop => "B",
                     Move.Flags.PromotionKnight => "N",
                     Move.Flags.PromotionRook => "R",
@@ -376,12 +419,13 @@ namespace ChessEngine
                 return SquareToString(move.StartSquare) + "-" + SquareToString(move.TargetSquare) + "=" + p2;
             }
 
-            if(move.MoveFlag == Move.Flags.CastlingKingSide) {
-                return "O-O";
-            }
-
-            if (move.MoveFlag == Move.Flags.CastlingQueenSide) {
-                return "O-O-O";
+            if(move.Flag == Move.Flags.Castling) {
+                if(move.TargetSquare % 8 == 6) {
+                    return "O-O";
+                }
+                else {
+                    return "O-O-O";
+                }
             }
 
             string p = Piece.PieceType(this[move.StartSquare]) switch {

@@ -44,7 +44,7 @@ namespace ChessUI
         private void MakeMove(Move move)
         {
             moveRule50++;
-            if (board[move.StartSquare] == Piece.Pawn || board[move.TargetSquare] != Piece.None) {
+            if (Piece.PieceType(board[move.StartSquare]) == Piece.Pawn || board[move.TargetSquare] != Piece.None) {
                 moveRule50 = 0;
             }
 
@@ -188,7 +188,7 @@ namespace ChessUI
                                 asked = true;
                             }
 
-                            if (moves[i].MoveFlag != promotionFlag) {
+                            if (moves[i].Flag != promotionFlag) {
                                 continue;
                             }
 
