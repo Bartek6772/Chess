@@ -4,6 +4,7 @@
              xmlns:local="clr-namespace:ChessUI"
              xmlns:alert="clr-namespace:ChessUI.Dialogs.Alert"
              xmlns:promotion="clr-namespace:ChessUI.Dialogs.Promotion"
+             xmlns:network="clr-namespace:ChessUI.Dialogs.Network"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
 
@@ -40,6 +41,10 @@
 
         <DataTemplate DataType="{x:Type promotion:PromotionDialogViewModel}">
             <promotion:PromotionDialogView/>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type network:NetworkViewModel}">
+            <network:NetworkDialogView/>
         </DataTemplate>
 
     </Application.Resources>

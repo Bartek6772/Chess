@@ -83,7 +83,7 @@ namespace ChessEngine
 
 
             foreach (var move in moves) {
-                if(move.TargetSquare == target) {
+                if (move.TargetSquare == target) {
 
                     bool legal = false;
 

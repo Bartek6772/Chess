@@ -34,7 +34,6 @@ namespace ChessEngine
         {
             //transpositionTable.Clear();
 
-
             stopwatch.Start();
             breaker = false;
             limit = timeLimit;
@@ -91,7 +90,7 @@ namespace ChessEngine
 
             int ttEval = transpositionTable.LookupEvaluation(depth, depthFromRoot, alpha, beta);
             if (ttEval != TranspositionTable.lookupFailed) {
-                if(depthFromRoot == 0) {
+                if (depthFromRoot == 0) {
                     bestMoveThisIteration = transpositionTable.GetStoredMove();
                     bestEvalThisIteration = transpositionTable.entries[transpositionTable.Index].eval;
                 }

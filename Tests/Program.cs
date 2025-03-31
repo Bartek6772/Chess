@@ -9,17 +9,13 @@ long[] correctAnswers4 = { 1, 6, 264, 9467, 422333, 15833292, 706045033 };
 long[] correctAnswers5 = { 1, 44, 1486, 62379, 2103487, 89941194 };
 
 Board board = new Board();
-//Move move = new() { StartSquare = 1, TargetSquare = 18 };
 
-//ulong hash = ZobristHashing.ComputeZobristHash(board);
-//Console.WriteLine(hash);
+Console.WriteLine("Transposition Table Test");
+SearchResult s1 = board.FindBestMove(8, 8000);
+SearchResult s2 = board.FindBestMove(8, 8000);
 
-//ZobristHashing.UpdateZobristHash(ref hash, move, board);
-//Console.WriteLine(hash);
-
-//ZobristHashing.UpdateZobristHash(ref hash, move, board);
-//Console.WriteLine(hash);
-
+Console.WriteLine($"Depth {s1.depth} Time: {s1.time}ms Result: {s1.move.ToString()}");
+Console.WriteLine($"Depth {s2.depth} Time: {s2.time}ms Result: {s2.move.ToString()}\n");
 
 
 //Perft.RunDebug(board, 2);
@@ -29,7 +25,6 @@ board.LoadPositionFromFEN(Board.startFEN);
 for (int i = 1; i <= 5; i++) {
     Perft.Run(board, i, correctAnswers[i]);
 }
-
 
 Console.WriteLine("\nRunning Position 2 Tests: ");
 board.LoadPositionFromFEN("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R");

@@ -2,15 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace ChessEngine
 {
     public struct Move
     {
-        public int StartSquare;
-        public int TargetSquare;
-        public Flags Flag;
+        [JsonInclude] public int StartSquare;
+        [JsonInclude] public int TargetSquare;
+        [JsonInclude] public Flags Flag;
 
         public readonly static Move Null = new Move() { StartSquare = 0, TargetSquare = 0 };
 

@@ -38,5 +38,19 @@ namespace ChessUI
                 mainWindow.SwitchToGame(GameMode.PlayerMinimax);
             }
         }
+
+        private void Button_HG_Click(object sender, RoutedEventArgs e)
+        {
+            if (Application.Current.MainWindow is MainWindow mainWindow) {
+                mainWindow.SwitchToGame(GameMode.Sever);
+            }
+        }
+
+        private void Button_JG_Click(object sender, RoutedEventArgs e)
+        {
+            if (Application.Current.MainWindow is MainWindow mainWindow) {
+                mainWindow.SwitchToGame(GameMode.Client);
+            }
+        }
     }
 }

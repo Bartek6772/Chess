@@ -81,7 +81,7 @@
             </Border>
             
             <Border Grid.Row="0" Grid.Column="1">
-                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding SearchDepth}"/>    
+                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding SearchDepth, UpdateSourceTrigger=PropertyChanged}"/>    
             </Border>
             
             
@@ -91,7 +91,7 @@
             </Border>
             
             <Border Grid.Row="1" Grid.Column="1">
-                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding SearchTimeLimit}"/>
+                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding SearchTimeLimit, UpdateSourceTrigger=PropertyChanged}"/>
             </Border>
 
             

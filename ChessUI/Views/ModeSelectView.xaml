@@ -17,11 +17,13 @@
             </Style.Setters>
         </Style>
     </UserControl.Resources>
-    <Grid>
-        <WrapPanel Width="1012" Height="700">
+    <Grid Width="1012" Height="700">
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
             <Button Content="Gracz kontra gracz" Click="Button_PP_Click"/>
             <Button Content="Gracz kontra Minimax" Click="Button_PM_Click"/>
-            <Button Content="Gracz kontra Minimax (hard)" />
-        </WrapPanel>
+            <Button Content="Stwórz grę" Click="Button_HG_Click"/>
+            <Button Content="Dołącz do gry" Click="Button_JG_Click"/>
+            
+        </StackPanel>
     </Grid>
 </UserControl>

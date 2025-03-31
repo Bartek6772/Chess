@@ -16,7 +16,7 @@ namespace ChessUI
         private bool _AIEnabled = true;
         private bool _moveOrderingEnabled = true;
         private int _searchTimeLimit = 5000;
-        private int _searchDepth = 10;
+        private int _searchDepth = 6;
         private string _bookMove = "Make move to refresh";
         private ulong _zobristHash;
 
@@ -83,9 +83,5 @@ namespace ChessUI
         }
     }
 
-    public enum GameMode
-    {
-        TwoPlayers,
-        PlayerMinimax
-    }
+   
 }

@@ -21,24 +21,10 @@ namespace ChessUI
         private const double DragThreshold = 5;
         private int selectedSquare = -1;
 
-        private bool EnableSelecting = true;
-
         int moveNumber = 1;
 
         int moveRule50 = 0;
         private Dictionary<ulong, int> positionHistory = new Dictionary<ulong, int>();
-
-        public enum GameState
-        {
-            InProgress,
-            WhiteWon,
-            BlackWon,
-            Stalemate,
-            DrawRepetition,
-            FiftyMovesRule,
-            InsufficientMaterial
-        }
-
         private GameState state = GameState.InProgress;
 
         private void MakeMove(Move move)
@@ -61,8 +47,19 @@ namespace ChessUI
                 MoveHistory.Add(ho);
             }
 
-            turn = 1 - turn;
             board.MakeMove(move);
+
+            if (isMultiplayer) {
+                if(turn == playingAs) {
+                    // I made move
+                    network.SendMove(move);
+                }
+                else {
+                    // opponent make move
+                }
+            }
+
+            turn = 1 - turn;
 
             AppSettings.Instance.ZobristHash = board.GetZobristHash();
 
@@ -132,6 +129,8 @@ namespace ChessUI
                 return (row + col) % 2 == 0;
             }
             #endregion
+
+            RefreshBoard();
         }
 
         public void FindBestMoveInBackground()
@@ -143,8 +142,7 @@ namespace ChessUI
                     Dispatcher.Invoke(() => {
                         AppSettings.Instance.logs.Add($"Search at depth {result.depth} time {result.time}");
                         MakeMove(result.move.Value);
-                        RefreshBoard();
-                        EnableSelecting = true;
+                        //RefreshBoard();
 
                         Move? bookMove = board.GetBookMove();
                         if (bookMove.HasValue) {
@@ -157,7 +155,6 @@ namespace ChessUI
                     });
                 }
             });
-            EnableSelecting = false;
             thread.IsBackground = true;
             thread.Start();
         }
@@ -170,7 +167,9 @@ namespace ChessUI
 
         private void SelectSquare(int row, int col)
         {
-            if (!EnableSelecting || state != GameState.InProgress) return;
+            if (!timersEnabled) return; // timers disabled means game is paused
+            if (state != GameState.InProgress) return;
+            if (playingAs != turn) return;
 
             if (selectedSquare != -1) {
 
@@ -194,9 +193,9 @@ namespace ChessUI
 
                         }
 
-                        MakeMove(moves[i]);
                         selectedSquare = -1;
-                        RefreshBoard();
+                        MakeMove(moves[i]);
+                        //RefreshBoard();
 
                         EnemyResponse();
                         return;

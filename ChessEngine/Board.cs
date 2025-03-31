@@ -50,7 +50,7 @@ namespace ChessEngine
 
             hash = ZobristHashing.ComputeZobristHash(this);
 
-            int sizeMB = 128;
+            int sizeMB = 256;
             int sizeBytes = sizeMB * 1024 * 1024;
             int entrySizeBytes = Marshal.SizeOf<TranspositionTable.Entry>();
             int numEntries = sizeBytes / entrySizeBytes;
@@ -329,6 +329,7 @@ namespace ChessEngine
                 hash ^= ZobristHashing.CastlingRights(castlingRights);
             }
 
+            //newGS.enpassantSquare = enpassantSquare;
             colorToMove = 1 - colorToMove;
             history.Push(newGS);
         }
@@ -365,7 +366,7 @@ namespace ChessEngine
             hash ^= ZobristHashing.GetPieceHash(toSquarePieceType | color, movedTo);
 
             // Remove current and add old enpassant
-            if(enpassantSquare != -1) {
+            if (enpassantSquare != -1) {
                 hash ^= ZobristHashing.EnpassantFile(enpassantSquare % 8);
             }
 
@@ -374,7 +375,7 @@ namespace ChessEngine
             }
 
             // Capture without enpassant
-            if(oldGS.capturedPiece != Piece.None && !isEnpassant) {
+            if (oldGS.capturedPiece != Piece.None && !isEnpassant) {
                 hash ^= ZobristHashing.GetPieceHash(oldGS.capturedPiece, movedTo);
                 pieceList[oldGS.capturedPiece].AddPiece(movedTo);
             }
@@ -405,7 +406,7 @@ namespace ChessEngine
                 this[epIndex] = oldGS.capturedPiece;
                 pieceList[oldGS.capturedPiece].AddPiece(epIndex);
 
-                hash ^= ZobristHashing.GetPieceHash(oldGS.capturedPiece, movedTo);
+                hash ^= ZobristHashing.GetPieceHash(oldGS.capturedPiece, epIndex);
             }
             else if (move.Flag == Move.Flags.Castling) {
                 bool kingside = move.TargetSquare % 8 == 6;
@@ -431,7 +432,6 @@ namespace ChessEngine
                 hash ^= ZobristHashing.CastlingRights(castlingRights);
             }
         }
-
 
         #region Castling
         public void RemoveCastling(int rights) => castlingRights &= ~rights;

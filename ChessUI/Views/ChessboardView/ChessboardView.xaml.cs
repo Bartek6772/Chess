@@ -1,7 +1,9 @@
 ﻿using ChessEngine;
 using ChessUI.Dialogs;
 using ChessUI.Dialogs.Alert;
+using ChessUI.Dialogs.Network;
 using ChessUI.Dialogs.Promotion;
+using ChessUI.Networking;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -26,8 +28,10 @@ namespace ChessUI
 
         private Board board;
         private List<Move> moves;
+        private NetworkBase network;
 
         bool rotated = false;
+        bool isMultiplayer = false;
 
         SolidColorBrush whiteColor = new SolidColorBrush(Color.FromRgb(121, 72, 57));
         SolidColorBrush blackColor = new SolidColorBrush(Color.FromRgb(93, 50, 49));
@@ -135,6 +139,10 @@ namespace ChessUI
                 else if(state == GameState.DrawRepetition) Alert("Remis przez powtórzenia");
                 else if(state == GameState.FiftyMovesRule) Alert("Remis - 50 ruchów bez postępu");
                 else if(state == GameState.InsufficientMaterial) Alert("Remis - brak przewagi materiału");
+                else if(state == GameState.OutOfTimeBlack) Alert("Białe wygrywają - koniec czasu");
+                else if(state == GameState.OutOfTimeWhite) Alert("Czarne wygrywają - koniec czasu");
+
+                timer.Stop();
             }
         }
 
@@ -202,6 +210,7 @@ namespace ChessUI
         #region Buttons
         private void UndoButton_Click(object sender, RoutedEventArgs e)
         {
+            if (isMultiplayer) return;
             if(MoveHistory.Count > 0) {
 
                 if (AppSettings.Instance.AIEnabled) {
@@ -211,11 +220,12 @@ namespace ChessUI
 
                     MoveHistory.RemoveAt(MoveHistory.Count - 1);
 
+                    //MessageBox.Show(board.GetZobristHash().ToString());
                     positionHistory[board.GetZobristHash()]--;
                     board.UnmakeMove();
                     moveNumber--;
 
-                    moveRule50 = Math.Clamp(moveRule50, 0, moveRule50 - 1);
+                    moveRule50 = Math.Min(moveRule50 - 1, 0);
                 }
                 else {
 
@@ -229,15 +239,16 @@ namespace ChessUI
                         }
                     }
                 }
+
+                //MessageBox.Show(board.GetZobristHash().ToString());
+                moveRule50 = Math.Min(moveRule50 - 1, 0);
+                state = GameState.InProgress;
+                positionHistory[board.GetZobristHash()]--;
+                board.UnmakeMove();
+
+                RefreshBoard();
+                AppSettings.Instance.ZobristHash = board.GetZobristHash();
             }
-
-            moveRule50 = Math.Clamp(moveRule50, 0, moveRule50 - 1);
-            state = GameState.InProgress;
-            positionHistory[board.GetZobristHash()]--;
-            board.UnmakeMove();
-
-            RefreshBoard();
-            AppSettings.Instance.ZobristHash = board.GetZobristHash();
         }
 
         private void RotateButton_Click(object sender, RoutedEventArgs e)
@@ -260,6 +271,7 @@ namespace ChessUI
         private int timerWhite;
         private int timerBlack;
         private int turn = 0;
+        private bool timersEnabled = true;
         DispatcherTimer timer;
 
         private void InitializeTimers()
@@ -275,11 +287,25 @@ namespace ChessUI
 
         private void Timer_Tick(object sender, EventArgs e)
         {
-            if(turn == 0) {
-                timerWhite--;
+            if (!timersEnabled) return;
+
+            if(!isMultiplayer || isHost) {
+                if (turn == 0) {
+                    timerWhite--;
+                }
+                else {
+                    timerBlack--;
+                }
+
+                network.SendTime(timerWhite, timerBlack);
             }
-            else {
-                timerBlack--;
+
+            if(timerWhite <= 0) {
+                state = GameState.OutOfTimeWhite;
+            }
+
+            if (timerBlack <= 0) {
+                state = GameState.OutOfTimeBlack;
             }
 
             WhiteTimer.Content = GetTimerString(timerWhite);
@@ -288,19 +314,79 @@ namespace ChessUI
 
         public string GetTimerString(int timer)
         {
-
             return (timer / 60).ToString() + ":" + (timer % 60 < 10 ? "0" : "") + (timer % 60).ToString();
         }
         #endregion
 
+        private int playingAs = 0;
+        public bool isHost = false;
         public void SetMode(GameMode mode)
         {
-            if(mode == GameMode.TwoPlayers) {
+            if (mode == GameMode.TwoPlayers) {
                 AppSettings.Instance.AIEnabled = false;
             }
             else if(mode == GameMode.PlayerMinimax) {
                 AppSettings.Instance.AIEnabled = true;
             }
+            else if(mode == GameMode.Sever) {
+                isMultiplayer = true;
+                timersEnabled = false;
+                isHost = true;
+                AppSettings.Instance.AIEnabled = false;
+
+                ChessServer server = new();
+                server.onClientConnected += OnClientConnected;
+                server.StartServer();
+                network = server;
+                network.onMove += OnNetworkMove;
+                network.onTimeUpdated += OnTimeUpdated;
+
+                playingAs = 0;
+            }
+            else if (mode == GameMode.Client) {
+                isMultiplayer = true;
+                timersEnabled = true;
+                AppSettings.Instance.AIEnabled = false;
+
+                string ip = dialogService.OpenDialog(new NetworkViewModel("Dołączanie do gry"));
+                ChessClient client = new();
+                client.ConnectToServer(ip);
+                network = client;
+                network.onMove += OnNetworkMove;
+                network.onTimeUpdated += OnTimeUpdated;
+
+                playingAs = 1;
+            }
+        }
+
+        private void OnNetworkMove(Move move)
+        {
+            if(board.LastMove().ToString() == move.ToString()) {
+                return; // it was my move
+            }
+
+            Dispatcher.Invoke(() => {
+                MakeMove(move);
+            });
+        }
+
+        private void OnClientConnected()
+        {
+            timersEnabled = true;
+
+            Dispatcher.Invoke(() => {
+                Alert("Gra rozpoczęta", "Drugi gracz dołączył");
+            });
+            //Alert("Gra się rozpocznie jak drugi gracz dołączy (moment ruszenia zegaru)");
+        }
+
+        private void OnTimeUpdated(int white, int black)
+        {
+            timerWhite = white;
+            timerBlack = black;
+            Debug.WriteLine(white + " " + black);
+            //WhiteTimer.Content = GetTimerString(timerWhite);
+            //BlackTimer.Content = GetTimerString(timerBlack);
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
