@@ -24,3 +24,8 @@ Ze względu na rezygnację z modelu MVVM klasa `ChessboardView` znacznie się ro
 ## Wnioski i plany na przyszłość
 
 Podczas pracy nad projektem nauczyliśmy się wielu ciekawych rzeczy o szachach i ich działaniu. Planujemy w przyszłości ponownie zająć się programowaniem szachów, tym razem mając na uwadze wydajność. Chcemy wykorzystać język **C++**, **bitboardy** oraz wielowątkowość aby rzucić kieydś wyzwanie Stockfishowi – albo przynajmniej jego starszej wersji.
+
+
+![image](https://github.com/user-attachments/assets/8fb1ad2e-12eb-4800-b21e-aca4ccef1caa)
+
+
