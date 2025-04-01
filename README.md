@@ -23,6 +23,8 @@ Aby zwiększyć wydajność, silnik używa **tabel transpozycyjnych** do śledze
 
 Ze względu na rezygnację z modelu MVVM klasa `ChessboardView` znacznie się rozrosła (łącznie 890 linii kodu). Z tego powodu konieczne było podzielenie jej na osobne pliki w celu zwiększenia przejrzystości kodu.
 
+Aby otworzyć okno debugowania należy nacisnąć klawisz F2.
+
 ## Wnioski i plany na przyszłość
 
 Podczas pracy nad projektem nauczyliśmy się wielu ciekawych rzeczy o szachach i ich działaniu. Planujemy w przyszłości ponownie zająć się programowaniem szachów, tym razem mając na uwadze wydajność. Chcemy wykorzystać język **C++**, **bitboardy** oraz wielowątkowość aby rzucić kieydś wyzwanie Stockfishowi – albo przynajmniej jego starszej wersji.
