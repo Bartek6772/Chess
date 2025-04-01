@@ -18,7 +18,6 @@ namespace ChessEngine
         }
 
         public const string startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
-        public const string testFEN = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - ";
 
         public const int WhiteIndex = 0;
         public const int BlackIndex = 1;

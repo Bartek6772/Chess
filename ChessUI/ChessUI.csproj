@@ -15,6 +15,20 @@
     <None Remove="Assets\b_pawn_png_shadow_128px.png" />
     <None Remove="Assets\b_queen_png_shadow_128px.png" />
     <None Remove="Assets\b_rook_png_shadow_128px.png" />
+    <None Remove="Assets\Custom\b_bishop.png" />
+    <None Remove="Assets\Custom\b_king.png" />
+    <None Remove="Assets\Custom\b_knight.png" />
+    <None Remove="Assets\Custom\b_pawn.png" />
+    <None Remove="Assets\Custom\b_pawn2.png" />
+    <None Remove="Assets\Custom\b_queen.png" />
+    <None Remove="Assets\Custom\b_rook.png" />
+    <None Remove="Assets\Custom\w_bishop.png" />
+    <None Remove="Assets\Custom\w_king.png" />
+    <None Remove="Assets\Custom\w_knight.png" />
+    <None Remove="Assets\Custom\w_pawn.png" />
+    <None Remove="Assets\Custom\w_pawn2.png" />
+    <None Remove="Assets\Custom\w_queen.png" />
+    <None Remove="Assets\Custom\w_rook.png" />
     <None Remove="Assets\no_shadow\b_bishop_png_128px.png" />
     <None Remove="Assets\no_shadow\b_king_png_128px.png" />
     <None Remove="Assets\no_shadow\b_knight_png_128px.png" />
@@ -46,6 +60,23 @@
     <None Remove="Assets\w_pawn_png_shadow_128px.png" />
     <None Remove="Assets\w_queen_png_shadow_128px.png" />
     <None Remove="Assets\w_rook_png_shadow_128px.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\Custom\b_bishop.png" />
+    <Resource Include="Assets\Custom\b_king.png" />
+    <Resource Include="Assets\Custom\b_knight.png" />
+    <Resource Include="Assets\Custom\b_pawn.png" />
+    <Resource Include="Assets\Custom\b_pawn2.png" />
+    <Resource Include="Assets\Custom\b_queen.png" />
+    <Resource Include="Assets\Custom\b_rook.png" />
+    <Resource Include="Assets\Custom\w_bishop.png" />
+    <Resource Include="Assets\Custom\w_king.png" />
+    <Resource Include="Assets\Custom\w_knight.png" />
+    <Resource Include="Assets\Custom\w_pawn.png" />
+    <Resource Include="Assets\Custom\w_pawn2.png" />
+    <Resource Include="Assets\Custom\w_queen.png" />
+    <Resource Include="Assets\Custom\w_rook.png" />
   </ItemGroup>
 
   <ItemGroup>

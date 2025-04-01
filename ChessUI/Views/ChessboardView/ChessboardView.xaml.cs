@@ -34,22 +34,28 @@ namespace ChessUI
         bool rotated = false;
         bool isMultiplayer = false;
 
-        SolidColorBrush whiteColor = new SolidColorBrush(Color.FromRgb(121, 72, 57));
-        SolidColorBrush blackColor = new SolidColorBrush(Color.FromRgb(93, 50, 49));
-        SolidColorBrush highlightColor = new SolidColorBrush(Color.FromArgb(100, 219, 65, 48));
-        SolidColorBrush lastMoveColor = new SolidColorBrush(Color.FromArgb(100, 245, 190, 39));
+        //SolidColorBrush whiteColor = new SolidColorBrush(Color.FromRgb(121, 72, 57));
+        //SolidColorBrush blackColor = new SolidColorBrush(Color.FromRgb(93, 50, 49));
+        //SolidColorBrush highlightColor = new SolidColorBrush(Color.FromArgb(100, 219, 65, 48));
+        //SolidColorBrush lastMoveColor = new SolidColorBrush(Color.FromArgb(100, 245, 190, 39));
+
+        private ColorSet set;
+        private ImagesSet imageSet = ImagesSet.Normal;
+        int setIndex = 0;
 
         private DialogService dialogService;
 
         public ChessboardView()
         {
+            setIndex = AppSettings.Instance.savedColorIndex;
+            imageSet = AppSettings.Instance.savedImages;
+            set = ColorSet.colorSets[setIndex];
+
             InitializeComponent();
             InitializeBoard();
             InitializeTimers();
 
             board = new Board();
-            //board.LoadPositionFromFEN("8/5r2/p7/5k2/7K/8/8/8 w - -");
-            board.LoadPositionFromFEN("5r2/8/8/2k5/7K/8/8/8 w - -");
             moves = board.GenerateMoves();
 
             DrawBoard();
@@ -61,6 +67,10 @@ namespace ChessUI
 
             dialogService = new DialogService();
             AppSettings.Instance.ZobristHash = board.GetHash();
+            AppSettings.Instance.logs.Clear();
+
+            whiteCaptures = new List<int>();
+            blackCaptures = new List<int>();
         }
 
         #region Modals
@@ -82,12 +92,14 @@ namespace ChessUI
         #region Rendering Board
         private void InitializeBoard()
         {
+            int height = 44;
+
             for (int row = 0; row < 8; row++) {
                 for (int col = 0; col < 8; col++) {
 
                     // Board
                     Rectangle rect = new Rectangle();
-                    rect.Fill = (row + col) % 2 == 0 ? whiteColor : blackColor;
+                    rect.Fill = (row + col) % 2 == 0 ? set.whiteColor : set.blackColor;
                     Background.Children.Add(rect);
 
                     // Highlights
@@ -98,7 +110,7 @@ namespace ChessUI
                     // Pieces
                     Image image = new Image();
                     images[col, row] = image;
-                    image.Height = 44;
+                    image.Height = height;
                     image.RenderTransform = new TranslateTransform();
                     ChessPieces.Children.Add(image);
                 }
@@ -106,6 +118,8 @@ namespace ChessUI
             Chessboard.MouseLeftButtonDown += Board_MouseLeftButtonDown;
             Chessboard.MouseMove += Chessboard_MouseMove;
             Chessboard.MouseLeftButtonUp += Chessboard_MouseLeftButtonUp;
+
+            
         }
 
         public void UpdateEvaluationBar()
@@ -132,6 +146,7 @@ namespace ChessUI
             ClearHighlights();
             DrawLastMove();
             UpdateEvaluationBar();
+            RefreshCaptures();
 
             moves = board.GenerateMoves();
 
@@ -166,9 +181,19 @@ namespace ChessUI
 
         private void DrawBoard()
         {
+            int height = 44;
+            if (imageSet == ImagesSet.Custom) height = 52;
+
             for (int row = 0; row < 8; row++) {
                 for (int col = 0; col < 8; col++) {
-                    images[col, row].Source = Images.sources[board[GridToBoard(row, col)]];
+                    images[col, row].Height = height;
+                }
+            }
+
+            for (int row = 0; row < 8; row++) {
+                for (int col = 0; col < 8; col++) {
+                    //images[col, row].Source = Images.sources[board[GridToBoard(row, col)]];
+                    images[col, row].Source = Images.GetImages(imageSet)[board[GridToBoard(row, col)]];
                 }
             }
         }
@@ -187,7 +212,7 @@ namespace ChessUI
             DrawLastMove();
             for (int i = 0; i < moves.Count; i++) {
                 if (moves[i].StartSquare == selectedSquare) {
-                    ColorHighlight(moves[i].TargetSquare, highlightColor);
+                    ColorHighlight(moves[i].TargetSquare, set.highlightColor);
                 }
             }
 
@@ -198,8 +223,8 @@ namespace ChessUI
             Move? lastMove = board.LastMove();
 
             if (lastMove.HasValue) {
-                ColorHighlight(lastMove.Value.StartSquare, lastMoveColor);
-                ColorHighlight(lastMove.Value.TargetSquare, lastMoveColor);
+                ColorHighlight(lastMove.Value.StartSquare, set.lastMoveColor);
+                ColorHighlight(lastMove.Value.TargetSquare, set.lastMoveColor);
             }
         }
 
@@ -238,7 +263,6 @@ namespace ChessUI
 
                     MoveHistory.RemoveAt(MoveHistory.Count - 1);
 
-                    //MessageBox.Show(board.GetZobristHash().ToString());
                     positionHistory[board.GetHash()]--;
                     board.UnmakeMove();
                     moveNumber--;
@@ -258,7 +282,6 @@ namespace ChessUI
                     }
                 }
 
-                //MessageBox.Show(board.GetZobristHash().ToString());
                 moveRule50 = Math.Min(moveRule50 - 1, 0);
                 state = GameState.InProgress;
                 positionHistory[board.GetHash()]--;
@@ -271,10 +294,14 @@ namespace ChessUI
 
         private void RotateButton_Click(object sender, RoutedEventArgs e)
         {
+            Rotate();
+        }
+
+        private void Rotate()
+        {
             rotated = !rotated;
-            ClearHighlights();
+            RefreshBoard();
             DrawHighlights();
-            DrawBoard();
         }
         private void ExitButton_Click(object sender, RoutedEventArgs e)
         {
@@ -327,8 +354,8 @@ namespace ChessUI
                 state = GameState.OutOfTimeBlack;
             }
 
-            WhiteTimer.Content = GetTimerString(timerWhite);
-            BlackTimer.Content = GetTimerString(timerBlack);
+            WhiteTimer.Content = GetTimerString(rotated ? timerBlack : timerWhite);
+            BlackTimer.Content = GetTimerString(rotated ? timerWhite : timerBlack);
         }
 
         public string GetTimerString(int timer)
@@ -387,6 +414,7 @@ namespace ChessUI
                 network.onTimeUpdated += OnTimeUpdated;
 
                 playingAs = 1;
+                Rotate();
             }
         }
 
@@ -422,6 +450,34 @@ namespace ChessUI
         protected void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        private void ColorButton_Click(object sender, RoutedEventArgs e)
+        {
+            setIndex++;
+            if (setIndex >= ColorSet.colorSets.Count) setIndex = 0;
+
+            set = ColorSet.colorSets[setIndex];
+
+            Background.Children.Clear();
+            for (int row = 0; row < 8; row++) {
+                for (int col = 0; col < 8; col++) {
+                    Rectangle rect = new Rectangle();
+                    rect.Fill = (row + col) % 2 == 0 ? set.whiteColor : set.blackColor;
+                    Background.Children.Add(rect);
+                }
+            }
+
+            AppSettings.Instance.savedColorIndex = setIndex;
+        }
+
+        private void IconsButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (imageSet == ImagesSet.Normal) imageSet = ImagesSet.Custom;
+            else imageSet = ImagesSet.Normal;
+
+            DrawBoard();
+            AppSettings.Instance.savedImages = imageSet;
         }
     }
 }

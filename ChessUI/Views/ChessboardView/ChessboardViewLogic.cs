@@ -31,8 +31,14 @@ namespace ChessUI
         private void MakeMove(Move move)
         {
             moveRule50++;
-            if (Piece.PieceType(board[move.StartSquare]) == Piece.Pawn || board[move.TargetSquare] != Piece.None) {
+            int capture = board[move.TargetSquare];
+            if (Piece.PieceType(board[move.StartSquare]) == Piece.Pawn || capture != Piece.None) {
                 moveRule50 = 0;
+            }
+
+            if (capture != Piece.None) {
+                if (Piece.IsColor(capture, Piece.White)) blackCaptures.Add(capture);
+                if (Piece.IsColor(capture, Piece.Black)) whiteCaptures.Add(capture);
             }
 
             if (board.colorToMove == 1) {
@@ -59,6 +65,7 @@ namespace ChessUI
             turn = 1 - turn;
 
             AppSettings.Instance.ZobristHash = board.GetHash();
+            AppSettings.Instance.FEN = board.GenerateFEN();
 
             #region Special Rules
             if (moveRule50 > 50) {

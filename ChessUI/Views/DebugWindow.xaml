@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ChessUI"
         mc:Ignorable="d"
-        Height="600" Width="500"
+        Height="650" Width="500"
         WindowStyle="None"
         ResizeMode="CanResizeWithGrip"
         AllowsTransparency="True"
@@ -65,6 +65,7 @@
                 <RowDefinition Height="70"/>
                 <RowDefinition Height="70"/>
                 <RowDefinition Height="40"/>
+                <RowDefinition Height="40"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
@@ -119,10 +120,6 @@
                         <!--<Label Foreground="White" Content="Book Move: "/>-->
                         <Label Foreground="White" Content="{Binding BookMove}"/>
                     </WrapPanel>
-                    <WrapPanel>
-                        <!--<Label Foreground="White" Content="Engine Move: "/>-->
-                        <Label Foreground="White" Content="{Binding EngineMove}"/>
-                    </WrapPanel>
                 </StackPanel>
             </Border>
 
@@ -133,6 +130,15 @@
 
             <Border Grid.Row="4" Grid.Column="1">
                 <Label Foreground="White" Content="{Binding ZobristHash}"/>
+            </Border>
+
+            <!-- Row 6 -->
+            <Border Grid.Row="5" Grid.Column="0">
+                <Label Foreground="White" Content="FEN"/>
+            </Border>
+
+            <Border Grid.Row="5" Grid.Column="1">
+                <Label Foreground="White" Content="{Binding FEN}"/>
             </Border>
         </Grid>
 

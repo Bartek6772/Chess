@@ -16,6 +16,7 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="50"/>
             <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="20"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
@@ -36,8 +37,8 @@
             </Grid>
         </Viewbox>
 
-        <ListView Grid.Row="1" Grid.Column="2"
-                  Background="#121317" Foreground="White" Margin="30" BorderThickness="0"
+        <ListView Grid.Row="1" Grid.Column="3"
+                  Background="#121317" Foreground="White" Margin="10" BorderThickness="0"
                   ItemsSource="{Binding MoveHistory}"
                   Name="HistoryListView">
 
@@ -60,24 +61,48 @@
             </ListView.ItemTemplate>
             
         </ListView>
-        
+       
 
-        <StackPanel Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right">
-            <Border Width="100" Padding="10" Background="WhiteSmoke" CornerRadius="4">
+        <Grid Grid.Row="0" Grid.Column="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="100" />
+            </Grid.ColumnDefinitions>
+
+            <UniformGrid Width="350" Columns="10" Grid.Column="0" Name="BlackCaptures" HorizontalAlignment="Stretch">
+            </UniformGrid>
+
+            <Border Width="100" Height="60" Padding="10" Background="WhiteSmoke" CornerRadius="4" Grid.Column="1">
                 <Label Name="BlackTimer" Content="5:00" HorizontalAlignment="Center" FontSize="20" FontWeight="Bold"/>
             </Border>
-        </StackPanel>
+        </Grid>
 
-        <StackPanel Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right">
-            <Border Width="100" Padding="10" Background="WhiteSmoke" CornerRadius="4">
+        <Grid Grid.Row="2" Grid.Column="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="100" />
+            </Grid.ColumnDefinitions>
+
+            <UniformGrid Width="350" Columns="10" Height="60" Grid.Column="0" Name="WhiteCaptures">
+
+            </UniformGrid>
+
+            <Border Width="100" Height="60" Padding="10" Background="WhiteSmoke" CornerRadius="4" Grid.Column="1">
                 <Label Name="WhiteTimer" Content="5:00" HorizontalAlignment="Center" FontSize="20" FontWeight="Bold"/>
             </Border>
-        </StackPanel>
+        </Grid>
 
-        <WrapPanel Grid.Row="2" Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center">
-            <Button Content="Undo" Width="120" Height="50" Click="UndoButton_Click" Margin="10"/>
-            <Button Content="Rotate" Width="120" Height="50" Click="RotateButton_Click" Margin="10"/>
-            <Button Content="Exit" Width="120" Height="50" Click="ExitButton_Click" Margin="10"/>
+
+        <WrapPanel Grid.Row="2" Grid.Column="3" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10">
+            <Button Content="Cofnij" Width="130" Height="50" Click="UndoButton_Click" Margin="10" FontSize="16" />
+            <Button Content="Obróć" Width="130" Height="50" Click="RotateButton_Click" Margin="10" FontSize="16"/>
+            <Button Content="Wyjdź" Width="130" Height="50" Click="ExitButton_Click" Margin="10" FontSize="16"/>
+        </WrapPanel>
+
+        <WrapPanel Grid.Row="0" Grid.Column="3" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10">
+            <Button Content="Zmień Wygląd" Width="130" Height="50" Click="IconsButton_Click" Margin="10" FontSize="16"/>
+            <Button Content="Zmień Kolory" Width="130" Height="50" Click="ColorButton_Click" Margin="10" FontSize="16"/>
+            <Button Content="" Width="130" Height="50" Margin="10" FontSize="16"/>
         </WrapPanel>
     </Grid>
 </UserControl>

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ChessUI.Misc;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -19,7 +20,7 @@ namespace ChessUI
         private int _searchTimeLimit = 5000;
         private int _searchDepth = 8;
         private string _bookMove = "Make move to refresh";
-        private string _engineMove = "Make move to refresh";
+        private string _fen = "Make move to refresh";
         private ulong _zobristHash;
 
         public bool AIEnabled {
@@ -62,6 +63,9 @@ namespace ChessUI
             }
         }
 
+        public ImagesSet savedImages = ImagesSet.Normal;
+        public int savedColorIndex = 0;
+
         public string BookMove {
             get => _bookMove;
             set {
@@ -70,11 +74,11 @@ namespace ChessUI
             }
         }
 
-        public string EngineMove {
-            get => _engineMove;
+        public string FEN {
+            get => _fen;
             set {
-                _engineMove = value;
-                OnPropertyChanged(nameof(EngineMove));
+                _fen = value;
+                OnPropertyChanged(nameof(FEN));
             }
         }
 
