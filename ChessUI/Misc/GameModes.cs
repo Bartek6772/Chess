@@ -4,14 +4,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ChessUI
+namespace ChessUI.Misc
 {
     public enum GameMode
     {
+        None,
         TwoPlayers,
         PlayerMinimax,
-        Sever,
-        Client
+        Server,
+        Client,
+        Custom,
     }
 
     public enum GameState

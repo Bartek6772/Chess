@@ -27,6 +27,12 @@ namespace ChessEngine
             public int[] attacksDirections;
         }
 
+        // Aka manhattan distance (answers how many moves for a rook to get from square a to square b)
+        public static int[,] orthogonalDistance;
+        // Aka chebyshev distance (answers how many moves for a king to get from square a to square b)
+        public static int[,] kingDistance;
+        public static int[] centreManhattanDistance;
+
         static PrecomputedMoveData()
         {
             NumSquaresToEdge = new int[64][];
@@ -34,6 +40,8 @@ namespace ChessEngine
 
             KnightJumps = new int[64][];
             PrecomputeKnightJumps();
+
+            DistanceLookup();
         }
 
         private static void PrecomputeSlidingMoves()
@@ -83,25 +91,54 @@ namespace ChessEngine
             }
         }
 
-        //private static void PrecomputePawnAttacks(ref PawnData data, int[] jumpX, int [] jumpY)
-        //{
-        //    for (int row = 0; row < 8; row++) {
-        //        for (int col = 0; col < 8; col++) {
+        private static void DistanceLookup()
+        {
+            // Distance lookup
+            orthogonalDistance = new int[64, 64];
+            kingDistance = new int[64, 64];
+            centreManhattanDistance = new int[64];
+            for (int squareA = 0; squareA < 64; squareA++) {
+                Coord coordA = CoordFromIndex(squareA);
+                int fileDstFromCentre = Math.Max(3 - coordA.fileIndex, coordA.fileIndex - 4);
+                int rankDstFromCentre = Math.Max(3 - coordA.rankIndex, coordA.rankIndex - 4);
+                centreManhattanDistance[squareA] = fileDstFromCentre + rankDstFromCentre;
 
-        //            List<int> moves = new List<int>(8);
+                for (int squareB = 0; squareB < 64; squareB++) {
 
-        //            for (int i = 0; i < 2; i++) {
-        //                int targetX = col + jumpX[i];
-        //                int targetY = row + jumpY[i];
+                    Coord coordB = CoordFromIndex(squareB);
+                    int rankDistance = Math.Abs(coordA.rankIndex - coordB.rankIndex);
+                    int fileDistance = Math.Abs(coordA.fileIndex - coordB.fileIndex);
+                    orthogonalDistance[squareA, squareB] = fileDistance + rankDistance;
+                    kingDistance[squareA, squareB] = Math.Max(fileDistance, rankDistance);
+                }
+            }
+        }
 
-        //                if (targetX >= 0 && targetX < 8 && targetY >= 0 && targetY < 8) {
-        //                    moves.Add(targetX + targetY * 8);
-        //                }
-        //            }
+        public static int NumRookMovesToReachSquare(int startSquare, int targetSquare)
+        {
+            return orthogonalDistance[startSquare, targetSquare];
+        }
 
-        //            data.attacks[col + row * 8] = moves.ToArray();
-        //        }
-        //    }
-        //}
+        public static int NumKingMovesToReachSquare(int startSquare, int targetSquare)
+        {
+            return kingDistance[startSquare, targetSquare];
+        }
+
+        public static Coord CoordFromIndex(int squareIndex)
+        {
+            return new Coord(squareIndex % 8, squareIndex / 8);
+        }
+
+        public struct Coord
+        {
+            public readonly int fileIndex;
+            public readonly int rankIndex;
+
+            public Coord(int fileIndex, int rankIndex)
+            {
+                this.fileIndex = fileIndex;
+                this.rankIndex = rankIndex;
+            }
+        }
     }
 }

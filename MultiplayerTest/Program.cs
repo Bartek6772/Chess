@@ -1,4 +1,5 @@
-﻿using ChessUI.Networking;
+﻿using ChessUI.Misc;
+using ChessUI.Networking;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -14,9 +15,9 @@ server.StartServer();
 ChessClient client = new ChessClient();
 client.ConnectToServer("192.168.56.1");
 
-//server.SendGameState(ChessUI.GameState.Stalemate);
-//server.SendMove(new ChessEngine.Move() { StartSquare = 1, TargetSquare = 18 });
-//client.SendMove(new ChessEngine.Move() { StartSquare = 11, TargetSquare = 19, Flag = ChessEngine.Move.Flags.DoublePush });
+server.SendGameState(GameState.Stalemate);
+server.SendMove(new ChessEngine.Move() { StartSquare = 1, TargetSquare = 18 });
+client.SendMove(new ChessEngine.Move() { StartSquare = 11, TargetSquare = 19, Flag = ChessEngine.Move.Flags.DoublePush });
 
 
 struct Test

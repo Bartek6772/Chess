@@ -23,6 +23,7 @@
             <Button Content="Gracz kontra Minimax" Click="Button_PM_Click"/>
             <Button Content="Stwórz grę" Click="Button_HG_Click"/>
             <Button Content="Dołącz do gry" Click="Button_JG_Click"/>
+            <Button Content="Niestandardowa gra" Click="Button_Custom_Click"/>
             
         </StackPanel>
     </Grid>

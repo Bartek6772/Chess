@@ -14,15 +14,31 @@ namespace ChessEngine
         const int rookValue = 500;
         const int queenValue = 900;
 
+        const float endgameMaterialStart = rookValue * 2 + bishopValue + knightValue;
+
         public static int Evaluate(Board board)
         {
+            int whiteEval = 0;
+            int blackEval = 0;
+
             int whiteMaterial = CountMaterial(board, Piece.White);
             int blackMaterial = CountMaterial(board, Piece.Black);
 
-            int evaluation = whiteMaterial - blackMaterial;
+            int whiteMaterialWithoutPawns = whiteMaterial - board.pieceList[Piece.WhitePawn].Count * pawnValue;
+            int blackMaterialWithoutPawns = blackMaterial - board.pieceList[Piece.BlackPawn].Count * pawnValue;
+            float whiteEndgamePhaseWeight = EndgamePhaseWeight(whiteMaterialWithoutPawns);
+            float blackEndgamePhaseWeight = EndgamePhaseWeight(blackMaterialWithoutPawns);
 
-            evaluation += CountPosition(board, Piece.White);
-            evaluation -= CountPosition(board, Piece.Black);
+            whiteEval += whiteMaterial;
+            blackEval += blackMaterial;
+
+            whiteEval += EndGameEval(board, whiteMaterial, blackMaterial, blackEndgamePhaseWeight);
+            blackEval += EndGameEval(board, blackMaterial, whiteMaterial, whiteEndgamePhaseWeight);
+
+            whiteEval += CountPosition(board, Piece.White, blackEndgamePhaseWeight);
+            blackEval += CountPosition(board, Piece.Black, whiteEndgamePhaseWeight);
+
+            int evaluation = whiteEval - blackEval;
 
             return evaluation;
         }
@@ -38,35 +54,54 @@ namespace ChessEngine
             return material;
         }
 
-        private static int CountPosition(Board board, int color)
+        private static int CountPosition(Board board, int color, float endgamePhaseWeight)
         {
             int position = 0;
 
-            foreach (var square in board.pieceList[Piece.Pawn | color]) {
-                position += PieceSquareTables.Read(board[square], square);
-            }
+            position += EvaluatePieceList(board, Piece.Pawn, color);
+            position += EvaluatePieceList(board, Piece.Knight, color);
+            position += EvaluatePieceList(board, Piece.Bishop, color);
+            position += EvaluatePieceList(board, Piece.Rook, color);
+            position += EvaluatePieceList(board, Piece.Queen, color);
 
-            foreach (var square in board.pieceList[Piece.Knight | color]) {
-                position += PieceSquareTables.Read(board[square], square);
-            }
+            int kingSquare = board.pieceList[Piece.King | color][0];
 
-            foreach (var square in board.pieceList[Piece.Bishop | color]) {
-                position += PieceSquareTables.Read(board[square], square);
-            }
+            int kingEarlyPhase = PieceSquareTables.Read(board[kingSquare], kingSquare);
+            position += (int)(kingEarlyPhase * (1 - endgamePhaseWeight));
 
-            foreach (var square in board.pieceList[Piece.Rook | color]) {
-                position += PieceSquareTables.Read(board[square], square);
-            }
+            return position;
+        }
 
-            foreach (var square in board.pieceList[Piece.Queen | color]) {
-                position += PieceSquareTables.Read(board[square], square);
-            }
+        private static int EvaluatePieceList(Board board, int piece, int color)
+        {
+            int position = 0;
 
-            foreach (var square in board.pieceList[Piece.King | color]) {
+            foreach (var square in board.pieceList[piece | color]) {
                 position += PieceSquareTables.Read(board[square], square);
             }
 
             return position;
+        }
+
+        static float EndgamePhaseWeight(int materialCountWithoutPawns)
+        {
+            const float multiplier = 1 / endgameMaterialStart;
+            return 1 - Math.Min(1, materialCountWithoutPawns * multiplier);
+        }
+
+        static int EndGameEval(Board board, int myMaterial, int opponentMaterial, float endgameWeight)
+        {
+            int mopUpScore = 0;
+
+            if (myMaterial > opponentMaterial + pawnValue * 2 && endgameWeight > 0) {
+                int friendlyKingSquare = board.pieceList[Piece.King | (board.colorToMove * Piece.Black)][0];
+                int opponentKingSquare = board.pieceList[Piece.King | ((1 - board.colorToMove) * Piece.Black)][0];
+                mopUpScore += PrecomputedMoveData.centreManhattanDistance[opponentKingSquare] * 10;
+                mopUpScore += (14 - PrecomputedMoveData.NumRookMovesToReachSquare(friendlyKingSquare, opponentKingSquare)) * 4;
+
+                return (int)(mopUpScore * endgameWeight);
+            }
+            return 0;
         }
 
         public static int GetPieceValue(int piece)

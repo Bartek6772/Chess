@@ -1,4 +1,5 @@
 ﻿using ChessEngine;
+using ChessUI.Misc;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -51,19 +52,13 @@ namespace ChessUI
 
             if (isMultiplayer) {
                 if(turn == playingAs) {
-                    // I made move
                     network.SendMove(move);
-                }
-                else {
-                    // opponent make move
                 }
             }
 
             turn = 1 - turn;
 
             AppSettings.Instance.ZobristHash = board.GetZobristHash();
-
-            Debug.WriteLine("Book Moves: " + PGNReader.MovesInThisPosition(board.GetZobristHash()));
 
             #region Special Rules
             if (moveRule50 > 50) {
@@ -89,7 +84,8 @@ namespace ChessUI
             }
 
             if (board.pieceList[Piece.WhiteRook].Count + board.pieceList[Piece.BlackRook].Count == 0 &&
-                board.pieceList[Piece.WhiteQueen].Count + board.pieceList[Piece.BlackQueen].Count == 0) {
+                board.pieceList[Piece.WhiteQueen].Count + board.pieceList[Piece.BlackQueen].Count == 0 &&
+                board.pieceList[Piece.WhitePawn].Count + board.pieceList[Piece.BlackPawn].Count == 0) {
 
                 int b_knights = board.pieceList[Piece.BlackKnight].Count;
                 int b_bishops = board.pieceList[Piece.BlackBishop].Count;
@@ -136,22 +132,12 @@ namespace ChessUI
         public void FindBestMoveInBackground()
         {
             Thread thread = new Thread(() => {
-                SearchResult result = board.FindBestMove(AppSettings.Instance.SearchDepth, AppSettings.Instance.SearchTimeLimit);
+                SearchResult result = board.FindBestMove(AppSettings.Instance.SearchDepth, AppSettings.Instance.SearchTimeLimit, AppSettings.Instance.MoveOrderingEnabled, AppSettings.Instance.BookMovesEnabled);
 
                 if (result.move.HasValue) {
                     Dispatcher.Invoke(() => {
-                        AppSettings.Instance.logs.Add($"Search at depth {result.depth} time {result.time}");
+                        AppSettings.Instance.logs.Add($"{result.move.Value} Search at depth {result.depth} time {result.time}" + (result.isBookMove ? " is book move" : ""));
                         MakeMove(result.move.Value);
-                        //RefreshBoard();
-
-                        Move? bookMove = board.GetBookMove();
-                        if (bookMove.HasValue) {
-                            Debug.WriteLine(bookMove.Value.ToString());
-                            AppSettings.Instance.BookMove = "Book move is " + bookMove.Value.ToString();
-                        }
-                        else {
-                            AppSettings.Instance.BookMove = "No book move";
-                        }
                     });
                 }
             });
@@ -169,7 +155,7 @@ namespace ChessUI
         {
             if (!timersEnabled) return; // timers disabled means game is paused
             if (state != GameState.InProgress) return;
-            if (playingAs != turn) return;
+            if (playingAs != turn && mode != GameMode.TwoPlayers) return;
 
             if (selectedSquare != -1) {
 
@@ -195,8 +181,6 @@ namespace ChessUI
 
                         selectedSquare = -1;
                         MakeMove(moves[i]);
-                        //RefreshBoard();
-
                         EnemyResponse();
                         return;
                     }

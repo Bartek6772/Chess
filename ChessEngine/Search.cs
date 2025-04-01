@@ -13,11 +13,12 @@ namespace ChessEngine
         TranspositionTable transpositionTable;
         Stopwatch stopwatch;
 
-        const int MinValue = -100000;
-        const int MaxValue = 100000;
+        const int MinValue = -MaxValue;
+        const int MaxValue = 999999999;
+        const int MateScore = 100000;
 
-        public bool moveOrdering = true;
-        private bool breaker = false;
+        private bool moveOrdering = true;
+        private bool abortSearch = false;
         private int limit;
 
         public Search(Board board, TranspositionTable transpositionTable)
@@ -30,23 +31,29 @@ namespace ChessEngine
         private Move? bestMoveThisIteration;
         private int bestEvalThisIteration;
 
-        public SearchResult FindBestMove2(int depth, int timeLimit)
+        public SearchResult FindBestMove(int depth, int timeLimit, bool moveOrdering, bool bookMoves)
         {
-            //transpositionTable.Clear();
-
+            this.moveOrdering = moveOrdering;
             stopwatch.Start();
-            breaker = false;
+            abortSearch = false;
             limit = timeLimit;
 
             SearchResult result = new();
 
-            Move? bookMove = board.GetBookMove();
-            if (bookMove.HasValue) {
-                result.move = bookMove.Value;
-                result.time = stopwatch.ElapsedMilliseconds;
-                stopwatch.Reset();
-                return result;
+            bestMoveThisIteration = null;
+            bestEvalThisIteration = 0;
+
+            if (bookMoves) {
+                Move? bookMove = board.GetBookMove();
+                if (bookMove.HasValue) {
+                    result.move = bookMove.Value;
+                    result.time = stopwatch.ElapsedMilliseconds;
+                    stopwatch.Reset();
+                    result.isBookMove = true;
+                    return result;
+                }
             }
+            result.isBookMove = false;
 
             for (int currentDepth = 1; currentDepth <= depth; currentDepth++) {
 
@@ -55,16 +62,28 @@ namespace ChessEngine
 
                 int eval = Minimax(currentDepth, 0, MinValue, MaxValue);
 
-                if (breaker) {
-                    //result.time = stopwatch.ElapsedMilliseconds;
+                if (abortSearch) {
+                    // Random move when no move is found
+                    if(!result.move.HasValue) {
+                        List<Move> moves = board.GenerateMoves();
+                        Random rnd = new();
+                        result.move = moves[rnd.Next(moves.Count)];
+                    }
+
                     Debug.WriteLine("TT " + ((float)transpositionTable.records / (float)transpositionTable.size) + " " + ((float)transpositionTable.overwrites / (float)transpositionTable.size));
                     stopwatch.Reset();
                     return result;
                 }
 
+
                 result.move = bestMoveThisIteration;
                 result.depth = currentDepth;
                 result.time = stopwatch.ElapsedMilliseconds;
+
+                if (IsMateScore(eval)) {
+                    Debug.WriteLine("Found mate");
+                    break;
+                }
 
                 Debug.WriteLine($"Search at depth {currentDepth} time: {stopwatch.ElapsedMilliseconds} ms");
             }
@@ -80,11 +99,11 @@ namespace ChessEngine
                 return Evaluation.Evaluate(board) * (board.colorToMove == Board.WhiteIndex ? 1 : -1);
             }
 
-            if(stopwatch.ElapsedMilliseconds > limit && !breaker) {
-                breaker = true;
+            if(stopwatch.ElapsedMilliseconds > limit && !abortSearch) {
+                abortSearch = true;
             }
 
-            if (breaker) {
+            if (abortSearch) {
                 return 0;
             }
 
@@ -102,12 +121,14 @@ namespace ChessEngine
 
             if (moves.Count == 0) {
                 if (board.IsInCheck()) {
-                    return MinValue;
+                    //Debug.WriteLine("Checkmate");
+                    return -(MateScore - depthFromRoot);
                 }
-                return 0;
+                else {
+                    return 0;
+                }
             }
 
-            int maxVal = int.MinValue;
             int evaluationBound = TranspositionTable.UpperBound;
             Move bestMoveInThisPosition = Move.Null;
 
@@ -115,8 +136,7 @@ namespace ChessEngine
                 board.MakeMove(move);
 
                 int evaluation = -Minimax(depth - 1, depthFromRoot + 1,  -beta, -alpha);
-
-                maxVal = int.Max(evaluation, maxVal);
+                //Debug.WriteLine($"Eval for {move.ToString()} at depth {depthFromRoot} is {evaluation}, {alpha}, {beta}");
                 board.UnmakeMove();
 
                 if(evaluation > alpha) {
@@ -131,16 +151,26 @@ namespace ChessEngine
                     }
                 }
 
-                if(evaluation >= beta) {
+                if (evaluation >= beta) {
                     transpositionTable.StoreEvaluation(depth, depthFromRoot, beta, TranspositionTable.LowerBound, move);
                     return beta;
                 }
-                //alpha = int.Max(alpha, evaluation);
-
             }
 
             transpositionTable.StoreEvaluation(depth, depthFromRoot, alpha, evaluationBound, bestMoveInThisPosition);
             return alpha;
+        }
+
+        public static bool IsMateScore(int score)
+        {
+            const int maxMateDepth = 1000;
+            return System.Math.Abs(score) > MateScore - maxMateDepth;
+        }
+
+        public static int NumPlyToMateFromScore(int score)
+        {
+            return MateScore - Math.Abs(score);
+
         }
 
         public int MoveHeuristic(Move move)
@@ -160,9 +190,6 @@ namespace ChessEngine
 
             return score;
         }
-
-        
-
     }
 
     public struct SearchResult
@@ -170,5 +197,6 @@ namespace ChessEngine
         public Move? move;
         public long time;
         public int depth;
+        public bool isBookMove;
     }
 }

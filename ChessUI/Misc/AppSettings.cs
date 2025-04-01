@@ -14,10 +14,12 @@ namespace ChessUI
         public static AppSettings Instance => _instance.Value;
 
         private bool _AIEnabled = true;
-        private bool _moveOrderingEnabled = true;
+        private bool _moveOrderingEnabled = false;
+        private bool _bookMovesEnabled = true;
         private int _searchTimeLimit = 5000;
-        private int _searchDepth = 6;
+        private int _searchDepth = 8;
         private string _bookMove = "Make move to refresh";
+        private string _engineMove = "Make move to refresh";
         private ulong _zobristHash;
 
         public bool AIEnabled {
@@ -33,6 +35,14 @@ namespace ChessUI
             set {
                 _moveOrderingEnabled = value;
                 OnPropertyChanged(nameof(MoveOrderingEnabled));
+            }
+        }
+
+        public bool BookMovesEnabled {
+            get => _bookMovesEnabled;
+            set {
+                _bookMovesEnabled = value;
+                OnPropertyChanged(nameof(BookMovesEnabled));
             }
         }
 
@@ -60,6 +70,14 @@ namespace ChessUI
             }
         }
 
+        public string EngineMove {
+            get => _engineMove;
+            set {
+                _engineMove = value;
+                OnPropertyChanged(nameof(EngineMove));
+            }
+        }
+
         public ulong ZobristHash {
             get => _zobristHash;
             set {
@@ -68,13 +86,11 @@ namespace ChessUI
             }
         }
 
+        public ObservableCollection<string> logs { get; set; }
+
         static AppSettings(){
             Instance.logs = new ObservableCollection<string>();
         }
-
-
-        public ObservableCollection<string> logs { get; set; }
-
 
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged(string propertyName)

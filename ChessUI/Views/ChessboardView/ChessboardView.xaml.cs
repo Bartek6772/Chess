@@ -3,6 +3,7 @@ using ChessUI.Dialogs;
 using ChessUI.Dialogs.Alert;
 using ChessUI.Dialogs.Network;
 using ChessUI.Dialogs.Promotion;
+using ChessUI.Misc;
 using ChessUI.Networking;
 using System;
 using System.Collections.Generic;
@@ -47,7 +48,8 @@ namespace ChessUI
             InitializeTimers();
 
             board = new Board();
-            //board.LoadPositionFromFEN("8/k7/3p4/p2P1p2/P2P1P2/8/8/1K6 w - -");
+            //board.LoadPositionFromFEN("8/5r2/p7/5k2/7K/8/8/8 w - -");
+            board.LoadPositionFromFEN("5r2/8/8/2k5/7K/8/8/8 w - -");
             moves = board.GenerateMoves();
 
             DrawBoard();
@@ -61,6 +63,7 @@ namespace ChessUI
             AppSettings.Instance.ZobristHash = board.GetZobristHash();
         }
 
+        #region Modals
         public void Alert(string title, string message)
         {
             var dialog = new AlertDialogViewModel(title, message);
@@ -74,6 +77,7 @@ namespace ChessUI
             var dialog = new PromotionDialogViewModel("Promotion", board.colorToMove == Board.WhiteIndex ? "white" : "black");
             return dialogService.OpenDialog(dialog);
         }
+        #endregion
 
         #region Rendering Board
         private void InitializeBoard()
@@ -121,6 +125,7 @@ namespace ChessUI
             whiteTransform.BeginAnimation(ScaleTransform.ScaleYProperty, whiteAnim);
         }
 
+        bool gameEnded = false;
         private void RefreshBoard()
         {
             DrawBoard();
@@ -130,7 +135,7 @@ namespace ChessUI
 
             moves = board.GenerateMoves();
 
-            if(state != GameState.InProgress) {
+            if (state != GameState.InProgress && !gameEnded) {
                 timer.Stop();
 
                 if(state == GameState.WhiteWon) Alert("Białe wygrywają - Mat");
@@ -142,7 +147,20 @@ namespace ChessUI
                 else if(state == GameState.OutOfTimeBlack) Alert("Białe wygrywają - koniec czasu");
                 else if(state == GameState.OutOfTimeWhite) Alert("Czarne wygrywają - koniec czasu");
 
+                AppSettings.Instance.BookMove = "None";
+                gameEnded = true;
+
                 timer.Stop();
+            }
+            else {
+
+                Move? bookMove = board.GetBookMove();
+                if (bookMove.HasValue) {
+                    AppSettings.Instance.BookMove = "Book move is " + bookMove.Value.ToString();
+                }
+                else {
+                    AppSettings.Instance.BookMove = "No book move";
+                }
             }
         }
 
@@ -297,7 +315,8 @@ namespace ChessUI
                     timerBlack--;
                 }
 
-                network.SendTime(timerWhite, timerBlack);
+                if(isMultiplayer)
+                    network.SendTime(timerWhite, timerBlack);
             }
 
             if(timerWhite <= 0) {
@@ -318,17 +337,27 @@ namespace ChessUI
         }
         #endregion
 
+        #region Modes And Network
         private int playingAs = 0;
         public bool isHost = false;
-        public void SetMode(GameMode mode)
+        private GameMode mode;
+        public void SetMode(GameMode mode, string fen)
         {
+            if(fen.Length > 5) {
+                Debug.WriteLine(fen);
+                board.LoadPositionFromFEN(fen);
+                RefreshBoard();
+            }
+
+            this.mode = mode;
+
             if (mode == GameMode.TwoPlayers) {
                 AppSettings.Instance.AIEnabled = false;
             }
             else if(mode == GameMode.PlayerMinimax) {
                 AppSettings.Instance.AIEnabled = true;
             }
-            else if(mode == GameMode.Sever) {
+            else if(mode == GameMode.Server) {
                 isMultiplayer = true;
                 timersEnabled = false;
                 isHost = true;
@@ -342,6 +371,8 @@ namespace ChessUI
                 network.onTimeUpdated += OnTimeUpdated;
 
                 playingAs = 0;
+
+                //Alert("Gra się rozpocznie jak drugi gracz dołączy (moment ruszenia zegaru)");
             }
             else if (mode == GameMode.Client) {
                 isMultiplayer = true;
@@ -377,7 +408,6 @@ namespace ChessUI
             Dispatcher.Invoke(() => {
                 Alert("Gra rozpoczęta", "Drugi gracz dołączył");
             });
-            //Alert("Gra się rozpocznie jak drugi gracz dołączy (moment ruszenia zegaru)");
         }
 
         private void OnTimeUpdated(int white, int black)
@@ -385,9 +415,8 @@ namespace ChessUI
             timerWhite = white;
             timerBlack = black;
             Debug.WriteLine(white + " " + black);
-            //WhiteTimer.Content = GetTimerString(timerWhite);
-            //BlackTimer.Content = GetTimerString(timerBlack);
         }
+        #endregion
 
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged(string propertyName)

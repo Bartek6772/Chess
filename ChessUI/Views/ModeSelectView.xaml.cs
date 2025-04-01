@@ -1,5 +1,9 @@
-﻿using System;
+﻿using ChessUI.Dialogs;
+using ChessUI.Dialogs.Settings;
+using ChessUI.Misc;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,8 +24,10 @@ namespace ChessUI
     /// </summary>
     public partial class ModeSelectView : UserControl
     {
+        private DialogService service;
         public ModeSelectView()
         {
+            service = new DialogService();
             InitializeComponent();
         }
 
@@ -42,7 +48,7 @@ namespace ChessUI
         private void Button_HG_Click(object sender, RoutedEventArgs e)
         {
             if (Application.Current.MainWindow is MainWindow mainWindow) {
-                mainWindow.SwitchToGame(GameMode.Sever);
+                mainWindow.SwitchToGame(GameMode.Server);
             }
         }
 
@@ -50,6 +56,17 @@ namespace ChessUI
         {
             if (Application.Current.MainWindow is MainWindow mainWindow) {
                 mainWindow.SwitchToGame(GameMode.Client);
+            }
+        }
+
+        private void Button_Custom_Click(object sender, RoutedEventArgs e)
+        {
+            if (Application.Current.MainWindow is MainWindow mainWindow) {
+
+                Settings settings = service.OpenDialog(new SettingsViewModel("Ustawienia gry"));
+                if(settings.mode != GameMode.None) {
+                    mainWindow.SwitchToGame(settings.mode, settings.fen);
+                }
             }
         }
     }

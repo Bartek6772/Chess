@@ -66,20 +66,14 @@ namespace ChessEngine
             Entry entry = entries[Index];
 
             if (entry.key == board.GetZobristHash()) {
-                // Only use stored evaluation if it has been searched to at least the same depth as would be searched now
                 if (entry.depth >= depth) {
-                    //int correctedScore = CorrectRetrievedMateScore(entry.eval, plyFromRoot);
-                    int correctedScore = entry.eval;
-                    // We have stored the exact evaluation for this position, so return it
+                    int correctedScore = CorrectRetrievedMateScore(entry.eval, plyFromRoot);
                     if (entry.nodeType == Exact) {
                         return correctedScore;
                     }
-                    // We have stored the upper bound of the eval for this position. If it's less than alpha then we don't need to
-                    // search the moves in this position as they won't interest us; otherwise we will have to search to find the exact value
                     if (entry.nodeType == UpperBound && correctedScore <= alpha) {
                         return correctedScore;
                     }
-                    // We have stored the lower bound of the eval for this position. Only return if it causes a beta cut-off.
                     if (entry.nodeType == LowerBound && correctedScore >= beta) {
                         return correctedScore;
                     }
@@ -99,30 +93,27 @@ namespace ChessEngine
             else
                 overwrites++;
 
-            //ulong index = Index;
-            //if (depth >= entries[Index].depth) {
-            Entry entry = new Entry(board.GetZobristHash(), eval, (byte)depth, (byte)evalType, move);
+            Entry entry = new Entry(board.GetZobristHash(), CorrectMateScoreForStorage(eval, numPlySearched), (byte)depth, (byte)evalType, move);
             entries[Index] = entry;
-            //}
         }
 
-        //int CorrectMateScoreForStorage(int score, int numPlySearched)
-        //{
-        //    if (Search.IsMateScore(score)) {
-        //        int sign = System.Math.Sign(score);
-        //        return (score * sign + numPlySearched) * sign;
-        //    }
-        //    return score;
-        //}
+        int CorrectMateScoreForStorage(int score, int numPlySearched)
+        {
+            if (Search.IsMateScore(score)) {
+                int sign = System.Math.Sign(score);
+                return (score * sign + numPlySearched) * sign;
+            }
+            return score;
+        }
 
-        //int CorrectRetrievedMateScore(int score, int numPlySearched)
-        //{
-        //    if (Search.IsMateScore(score)) {
-        //        int sign = System.Math.Sign(score);
-        //        return (score * sign - numPlySearched) * sign;
-        //    }
-        //    return score;
-        //}
+        int CorrectRetrievedMateScore(int score, int numPlySearched)
+        {
+            if (Search.IsMateScore(score)) {
+                int sign = System.Math.Sign(score);
+                return (score * sign - numPlySearched) * sign;
+            }
+            return score;
+        }
 
         public struct Entry
         {

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ChessEngine
 {
-    public static class PGNReader
+    static class PGNReader
     {
         private static Board board;
         private static Dictionary<ulong, List<Move>> bookMoves;

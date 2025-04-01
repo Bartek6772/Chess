@@ -1,4 +1,5 @@
 ﻿using ChessEngine;
+using ChessUI.Misc;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows;
@@ -21,10 +22,10 @@ public partial class MainWindow : Window
         MainContent.Content = new ModeSelectView();
     }
 
-    public void SwitchToGame(GameMode mode)
+    public void SwitchToGame(GameMode mode, string fen = "")
     {
         ChessboardView chessboardView = new();
-        chessboardView.SetMode(mode);
+        chessboardView.SetMode(mode, fen);
         MainContent.Content = chessboardView;
     }
 
@@ -32,55 +33,6 @@ public partial class MainWindow : Window
     {
         MainContent.Content = new ModeSelectView();
     }
-
-    //private void AnimatePieceMovement(Image piece, int newRow, int newColumn)
-    //{
-    //    // Get piece index in UniformGrid
-    //    int oldIndex = ChessPieces.Children.IndexOf(piece);
-    //    int oldRow = oldIndex / 8;
-    //    int oldColumn = oldIndex % 8;
-
-    //    // Calculate movement offsets
-    //    double deltaX = (newColumn - oldColumn) * 64;
-    //    double deltaY = (newRow - oldRow) * 64;
-
-    //    // Ensure the piece has a transform
-    //    TranslateTransform transform = piece.RenderTransform as TranslateTransform;
-    //    if (transform == null) {
-    //        transform = new TranslateTransform();
-    //        piece.RenderTransform = transform;
-    //    }
-
-    //    // Animate X movement
-    //    DoubleAnimation animX = new DoubleAnimation {
-    //        By = deltaX,
-    //        Duration = TimeSpan.FromMilliseconds(200),
-    //        EasingFunction = new QuadraticEase()
-    //    };
-
-    //    // Animate Y movement
-    //    DoubleAnimation animY = new DoubleAnimation {
-    //        By = deltaY,
-    //        Duration = TimeSpan.FromMilliseconds(200),
-    //        EasingFunction = new QuadraticEase()
-    //    };
-
-    //    // Start animation
-    //    transform.BeginAnimation(TranslateTransform.XProperty, animX);
-    //    transform.BeginAnimation(TranslateTransform.YProperty, animY);
-
-    //    // Update piece position after animation completes
-    //    animY.Completed += (s, e) =>
-    //    {
-    //        int newIndex = newRow * 8 + newColumn;
-    //        ChessPieces.Children.Remove(piece);
-    //        ChessPieces.Children.Insert(newIndex, piece);
-
-    //        // Reset translation to avoid stacking movements
-    //        transform.X = 0;
-    //        transform.Y = 0;
-    //    };
-    //}
 
     private void Border_MouseDown(object sender, MouseButtonEventArgs e)
     {

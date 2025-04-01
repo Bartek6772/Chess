@@ -18,7 +18,7 @@ namespace ChessEngine
         }
 
         public const string startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
-        public const string testFEN = "b3R3/8/8/2n5/8/6r1/4N3/8";
+        public const string testFEN = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - ";
 
         public const int WhiteIndex = 0;
         public const int BlackIndex = 1;
@@ -34,11 +34,11 @@ namespace ChessEngine
 
         public int castlingRights = 0b1111;
         public int enpassantSquare = -1;
+        private ulong hash;
 
         private MoveGeneration moveGeneration;
         private TranspositionTable transpositionTable;
         private Search search;
-        private ulong hash;
 
         public List<Move> GenerateMoves() => moveGeneration.GenerateMoves();
 
@@ -48,18 +48,16 @@ namespace ChessEngine
             moveGeneration = new MoveGeneration(this);
             LoadPositionFromFEN(startFEN);
 
-            hash = ZobristHashing.ComputeZobristHash(this);
-
             int sizeMB = 256;
             int sizeBytes = sizeMB * 1024 * 1024;
             int entrySizeBytes = Marshal.SizeOf<TranspositionTable.Entry>();
             int numEntries = sizeBytes / entrySizeBytes;
             transpositionTable = new TranspositionTable(this, numEntries);
 
+            hash = ZobristHashing.ComputeZobristHash(this);
             search = new Search(this, transpositionTable);
-
-            Debug.WriteLine("numEntries: " + numEntries);
         }
+
         private void InitializePieceList()
         {
             // TODO: Handle situation when user load position with more than max amount of pieces
@@ -92,7 +90,6 @@ namespace ChessEngine
             public int enpassantSquare;
         }
 
-        // TODO Extract FEN to new file
         public void LoadPositionFromFEN(string fen)
         {
             Squares = new int[64];
@@ -150,7 +147,6 @@ namespace ChessEngine
             hash = ZobristHashing.ComputeZobristHash(this);
             InitializePieceList();
         }
-
         public string GenerateFEN()
         {
             var pieceSymbolFromType = new Dictionary<int, char> {
@@ -190,25 +186,13 @@ namespace ChessEngine
                 fen += "/";
             }
 
+            fen += " " + (colorToMove == 0 ? "w" : "b");
+            if (HasCastlingRight(WK)) fen += "K";
+            if (HasCastlingRight(WQ)) fen += "Q";
+            if (HasCastlingRight(BK)) fen += "k";
+            if (HasCastlingRight(BQ)) fen += "q";
+
             return fen;
-
-            //string[] f = fen.Split(' ');
-
-            //if (f.Length > 1) {
-            //    colorToMove = (f[1] == "w" ? 0 : 1);
-            //}
-
-            //if (f.Length > 2) {
-            //    castlingRights = 0b0000;
-            //    foreach (char c in f[2]) {
-            //        if (c == 'K') AddCastling(WK);
-            //        else if (c == 'Q') AddCastling(WQ);
-            //        else if (c == 'k') AddCastling(BK);
-            //        else if (c == 'q') AddCastling(BQ);
-            //    }
-            //}
-
-            //InitializePieceList();
         }
 
         public void MakeMove(Move move)
@@ -333,7 +317,6 @@ namespace ChessEngine
             colorToMove = 1 - colorToMove;
             history.Push(newGS);
         }
-
         public void UnmakeMove()
         {
             if(history.Count == 0) {
@@ -496,7 +479,7 @@ namespace ChessEngine
 
         public ulong GetZobristHash() => hash;
         public Move? GetBookMove() => PGNReader.GetBookMove(hash);
-        public SearchResult FindBestMove(int depth, int timeLimit) => search.FindBestMove2(depth, timeLimit);
+        public SearchResult FindBestMove(int depth, int timeLimit, bool moveOrdering = true, bool allowBookMoves = true) => search.FindBestMove(depth, timeLimit, moveOrdering, allowBookMoves);
 
         #endregion
     }

@@ -27,8 +27,8 @@
 
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="3*"/>
+            <RowDefinition Height="200"/>
             <RowDefinition Height="60"/>
         </Grid.RowDefinitions>
 
@@ -62,8 +62,8 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="40"/>
                 <RowDefinition Height="40"/>
-                <RowDefinition Height="40"/>
-                <RowDefinition Height="40"/>
+                <RowDefinition Height="70"/>
+                <RowDefinition Height="70"/>
                 <RowDefinition Height="40"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
@@ -104,17 +104,26 @@
                 <StackPanel>
                     <CheckBox Content="AI Enabled" Foreground="White" IsChecked="{Binding AIEnabled}"/>
                     <CheckBox Content="Move Ordering" Foreground="White" IsChecked="{Binding MoveOrderingEnabled}"/>
-                    <Label Content="{Binding AIEnabled}" Foreground="White"/>
+                    <CheckBox Content="Book Moves" Foreground="White" IsChecked="{Binding BookMovesEnabled}"/>
                 </StackPanel>
             </Border>
 
             <!-- Row 4-->
             <Border Grid.Row="3" Grid.Column="0">
-                <Label Foreground="White" Content="Book Move"/>
+                <Label Foreground="White" Content="Tips"/>
             </Border>
 
             <Border Grid.Row="3" Grid.Column="1">
-                <Label Foreground="White" Content="{Binding BookMove}"/>
+                <StackPanel>
+                    <WrapPanel>
+                        <!--<Label Foreground="White" Content="Book Move: "/>-->
+                        <Label Foreground="White" Content="{Binding BookMove}"/>
+                    </WrapPanel>
+                    <WrapPanel>
+                        <!--<Label Foreground="White" Content="Engine Move: "/>-->
+                        <Label Foreground="White" Content="{Binding EngineMove}"/>
+                    </WrapPanel>
+                </StackPanel>
             </Border>
 
             <!-- Row 5-->
@@ -128,7 +137,7 @@
         </Grid>
 
         <StackPanel Grid.Row="2" Margin="10">
-            <ListView Height="160"
+            <ListView Height="180"
                   Background="#121317" Foreground="White" BorderThickness="0"
                   ItemsSource="{Binding logs}"
                   Name="LogsListView">
