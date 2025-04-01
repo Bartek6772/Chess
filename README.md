@@ -5,11 +5,13 @@
 Ta wersja projektu jest trzecim podejściem do problemu. Pierwsza wersja aplikacji działała na bazie MonoGame, ale z uwagi na brak możliwości łatwego tworzenia elementów interfejsu jej rozwój był utrudniony. Druga wersja została napisana w języku C# z użyciem Windows Presentation Foundation (WPF), jednak zastosowanie modelu MVVM okazało się trudne do pogodzenia z funkcjonalnością aplikacji (przeciąganie figur, proceduralne generowanie planszy itp.). Ostatecznie wersja trzecia nadal jest napisana w C# i WPF-ie, ale nie jest podzielona na części, jak miało to miejsce w przypadku MVVM.
 
 Projekt został podzielony na cztery moduły:
-
 - **ChessEngine** – silnik i logika gry,
 - **ChessUI** – aplikacja zawierająca interfejs użytkownika,
 - **Tests** – testy generowania legalnych ruchów,
 - **MultiplayerTest** – pomocniczy projekt do testowania połączeń sieciowych.
+
+## Uruchomienie
+Aplikacja wymaga werjsi .NET 8 oraz projektem startowym powinien być projekt **ChessUI** lub **Tests**
 
 ## Chess Engine
 
