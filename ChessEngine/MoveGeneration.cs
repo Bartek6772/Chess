@@ -47,13 +47,13 @@ namespace ChessEngine
             GenerateKingMoves(board.pieceList[Piece.King | colorToMove][0], colorToMove);
 
             foreach (Move move in moves) {
-                board.MakeMove(move);
+                board.MakeMove(move, true);
 
                 int frienldyKingSquare = board.pieceList[Piece.King | colorToMove][0];
                 if (!IsSquareAttacked(frienldyKingSquare, Piece.OppositeColor(colorToMove))) {
                     legalMoves.Add(move);
                 }
-                board.UnmakeMove();
+                board.UnmakeMove(true);
             }
 
             return legalMoves;
@@ -87,11 +87,11 @@ namespace ChessEngine
 
                     bool legal = false;
 
-                    board.MakeMove(move);
+                    board.MakeMove(move, true);
 
                     int frienldyKingSquare = board.pieceList[Piece.King | color][0];
                     legal = !IsSquareAttacked(frienldyKingSquare, Piece.OppositeColor(color));
-                    board.UnmakeMove();
+                    board.UnmakeMove(true);
 
                     if (legal) {
                         flag = move.Flag;

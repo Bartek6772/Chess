@@ -85,7 +85,7 @@ namespace ChessEngine
                     break;
                 }
 
-                Debug.WriteLine($"Search at depth {currentDepth} time: {stopwatch.ElapsedMilliseconds} ms");
+                Debug.WriteLine($"Search at depth {currentDepth} time: {stopwatch.ElapsedMilliseconds} ms {eval}");
             }
             
             stopwatch.Reset();
@@ -99,7 +99,20 @@ namespace ChessEngine
                 return Evaluation.Evaluate(board) * (board.colorToMove == Board.WhiteIndex ? 1 : -1);
             }
 
-            if(stopwatch.ElapsedMilliseconds > limit && !abortSearch) {
+            // CHECK THIS
+            if (depthFromRoot > 0) {
+                if (board.repetitionPositionHistory.Contains(board.GetHash())) {
+                    return 0;
+                }
+
+                //alpha = Math.Max(alpha, -MateScore + depthFromRoot);
+                //beta = Math.Min(beta, MateScore - depthFromRoot);
+                //if (alpha >= beta) {
+                //    return alpha;
+                //}
+            }
+
+            if (stopwatch.ElapsedMilliseconds > limit && !abortSearch) {
                 abortSearch = true;
             }
 
@@ -121,7 +134,6 @@ namespace ChessEngine
 
             if (moves.Count == 0) {
                 if (board.IsInCheck()) {
-                    //Debug.WriteLine("Checkmate");
                     return -(MateScore - depthFromRoot);
                 }
                 else {
@@ -133,11 +145,10 @@ namespace ChessEngine
             Move bestMoveInThisPosition = Move.Null;
 
             foreach (Move move in moves) {
-                board.MakeMove(move);
+                board.MakeMove(move, true);
 
                 int evaluation = -Minimax(depth - 1, depthFromRoot + 1,  -beta, -alpha);
-                //Debug.WriteLine($"Eval for {move.ToString()} at depth {depthFromRoot} is {evaluation}, {alpha}, {beta}");
-                board.UnmakeMove();
+                board.UnmakeMove(true);
 
                 if(evaluation > alpha) {
 

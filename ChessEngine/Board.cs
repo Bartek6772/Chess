@@ -40,12 +40,15 @@ namespace ChessEngine
         private TranspositionTable transpositionTable;
         private Search search;
 
+        public Stack<ulong> repetitionPositionHistory;
+
         public List<Move> GenerateMoves() => moveGeneration.GenerateMoves();
 
         public Board()
         {
             history = new Stack<GameState>();
             moveGeneration = new MoveGeneration(this);
+            repetitionPositionHistory = new();
             LoadPositionFromFEN(startFEN);
 
             int sizeMB = 256;
@@ -54,13 +57,19 @@ namespace ChessEngine
             int numEntries = sizeBytes / entrySizeBytes;
             transpositionTable = new TranspositionTable(this, numEntries);
 
-            hash = ZobristHashing.ComputeZobristHash(this);
             search = new Search(this, transpositionTable);
         }
 
-        private void InitializePieceList()
+        private void Initialize()
         {
-            // TODO: Handle situation when user load position with more than max amount of pieces
+            Squares = new int[64];
+            castlingRights = 0b1111;
+            enpassantSquare = -1;
+            history.Clear();
+            colorToMove = 0;
+            hash = ZobristHashing.ComputeZobristHash(this);
+            repetitionPositionHistory.Clear();
+
             pieceList = new PieceList[Piece.MaxPieceIndex + 1];
             pieceList[Piece.WhitePawn] = new PieceList(8);
             pieceList[Piece.WhiteKnight] = new PieceList(10);
@@ -92,12 +101,7 @@ namespace ChessEngine
 
         public void LoadPositionFromFEN(string fen)
         {
-            Squares = new int[64];
-            castlingRights = 0b1111;
-            enpassantSquare = -1;
-            history.Clear();
-            colorToMove = 0;
-
+            Initialize();
             var pieceTypeFromSymbol = new Dictionary<char, int> {
                 ['k'] = Piece.King,
                 ['q'] = Piece.Queen,
@@ -123,6 +127,7 @@ namespace ChessEngine
                         int pieceColor = char.IsUpper(symbol) ? Piece.White : Piece.Black;
                         int pieceType = pieceTypeFromSymbol[char.ToLower(symbol)];
                         this[col, row] = pieceColor | pieceType;
+                        pieceList[pieceColor | pieceType].AddPiece(col + row * 8);
                         col++;
                     }
                 }
@@ -143,9 +148,6 @@ namespace ChessEngine
                     else if (c == 'q') AddCastling(BQ);
                 }
             }
-
-            hash = ZobristHashing.ComputeZobristHash(this);
-            InitializePieceList();
         }
         public string GenerateFEN()
         {
@@ -195,7 +197,7 @@ namespace ChessEngine
             return fen;
         }
 
-        public void MakeMove(Move move)
+        public void MakeMove(Move move, bool inSearch = false)
         {
             if(move.StartSquare == Move.Null.StartSquare && move.TargetSquare == Move.Null.TargetSquare) {
                 Debug.WriteLine("TRYING TO MAKE NULL MOVE!!!!!!!!!!!!");
@@ -316,8 +318,18 @@ namespace ChessEngine
             //newGS.enpassantSquare = enpassantSquare;
             colorToMove = 1 - colorToMove;
             history.Push(newGS);
+
+            if (!inSearch) {
+                if (piece == Piece.Pawn || newGS.capturedPiece != Piece.None) {
+                    repetitionPositionHistory.Clear();
+                    //fiftyMoveCounter = 0;
+                }
+                else {
+                    repetitionPositionHistory.Push(hash);
+                }
+            }
         }
-        public void UnmakeMove()
+        public void UnmakeMove(bool inSearch = false)
         {
             if(history.Count == 0) {
                 Debug.WriteLine("Trying to unmake move error");
@@ -414,6 +426,10 @@ namespace ChessEngine
                 hash ^= ZobristHashing.CastlingRights(originalRights);
                 hash ^= ZobristHashing.CastlingRights(castlingRights);
             }
+
+            if (!inSearch && repetitionPositionHistory.Count > 0) {
+                repetitionPositionHistory.Pop();
+            }
         }
 
         #region Castling
@@ -477,7 +493,7 @@ namespace ChessEngine
         public int BlackMaterial() => Evaluation.CountMaterial(this, Piece.Black);
         public int Evaluate() => Evaluation.Evaluate(this);
 
-        public ulong GetZobristHash() => hash;
+        public ulong GetHash() => hash;
         public Move? GetBookMove() => PGNReader.GetBookMove(hash);
         public SearchResult FindBestMove(int depth, int timeLimit, bool moveOrdering = true, bool allowBookMoves = true) => search.FindBestMove(depth, timeLimit, moveOrdering, allowBookMoves);
 

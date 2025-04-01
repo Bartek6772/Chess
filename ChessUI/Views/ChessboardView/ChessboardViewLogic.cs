@@ -58,7 +58,7 @@ namespace ChessUI
 
             turn = 1 - turn;
 
-            AppSettings.Instance.ZobristHash = board.GetZobristHash();
+            AppSettings.Instance.ZobristHash = board.GetHash();
 
             #region Special Rules
             if (moveRule50 > 50) {
@@ -71,7 +71,7 @@ namespace ChessUI
                 state = GameState.Stalemate;
             }
 
-            ulong hash = board.GetZobristHash();
+            ulong hash = board.GetHash();
             if (positionHistory.ContainsKey(hash)) {
                 positionHistory[hash]++;
 

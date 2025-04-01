@@ -60,7 +60,7 @@ namespace ChessUI
             DataContext = this;
 
             dialogService = new DialogService();
-            AppSettings.Instance.ZobristHash = board.GetZobristHash();
+            AppSettings.Instance.ZobristHash = board.GetHash();
         }
 
         #region Modals
@@ -239,7 +239,7 @@ namespace ChessUI
                     MoveHistory.RemoveAt(MoveHistory.Count - 1);
 
                     //MessageBox.Show(board.GetZobristHash().ToString());
-                    positionHistory[board.GetZobristHash()]--;
+                    positionHistory[board.GetHash()]--;
                     board.UnmakeMove();
                     moveNumber--;
 
@@ -261,11 +261,11 @@ namespace ChessUI
                 //MessageBox.Show(board.GetZobristHash().ToString());
                 moveRule50 = Math.Min(moveRule50 - 1, 0);
                 state = GameState.InProgress;
-                positionHistory[board.GetZobristHash()]--;
+                positionHistory[board.GetHash()]--;
                 board.UnmakeMove();
 
                 RefreshBoard();
-                AppSettings.Instance.ZobristHash = board.GetZobristHash();
+                AppSettings.Instance.ZobristHash = board.GetHash();
             }
         }
 

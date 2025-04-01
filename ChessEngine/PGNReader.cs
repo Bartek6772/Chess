@@ -77,7 +77,7 @@ namespace ChessEngine
 
                     Move m = ParseSan(move.Trim(), colorToMove);
 
-                    AddBookMove(board.GetZobristHash(), m);
+                    AddBookMove(board.GetHash(), m);
                     board.MakeMove(m);
                     colorToMove = 1 - colorToMove;
 

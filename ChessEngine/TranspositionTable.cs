@@ -49,7 +49,7 @@ namespace ChessEngine
 
         public ulong Index {
             get {
-                return board.GetZobristHash() % size;
+                return board.GetHash() % size;
             }
         }
 
@@ -65,7 +65,7 @@ namespace ChessEngine
             }
             Entry entry = entries[Index];
 
-            if (entry.key == board.GetZobristHash()) {
+            if (entry.key == board.GetHash()) {
                 if (entry.depth >= depth) {
                     int correctedScore = CorrectRetrievedMateScore(entry.eval, plyFromRoot);
                     if (entry.nodeType == Exact) {
@@ -93,7 +93,7 @@ namespace ChessEngine
             else
                 overwrites++;
 
-            Entry entry = new Entry(board.GetZobristHash(), CorrectMateScoreForStorage(eval, numPlySearched), (byte)depth, (byte)evalType, move);
+            Entry entry = new Entry(board.GetHash(), CorrectMateScoreForStorage(eval, numPlySearched), (byte)depth, (byte)evalType, move);
             entries[Index] = entry;
         }
 
